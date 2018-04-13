@@ -25,7 +25,9 @@ import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilders;
 import io.github.swagger2markup.utils.URIUtils;
 import io.swagger.models.Swagger;
+import io.swagger.parser.OpenAPIParser;
 import io.swagger.parser.SwaggerParser;
+import io.swagger.v3.oas.models.OpenAPI;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -318,11 +320,12 @@ public class Swagger2MarkupConverter {
          * @return the Swagger model
          */
         private Swagger readSwagger(String swaggerLocation) {
-            Swagger swagger = new SwaggerParser().read(swaggerLocation);
-            if (swagger == null) {
+            final OpenAPI openAPI = new OpenAPIParser().readLocation(swaggerLocation, null, null).getOpenAPI();
+            if (openAPI == null) {
                 throw new IllegalArgumentException("Failed to read the Swagger source");
             }
-            return swagger;
+
+            return OpenAPI2SwaggerConverter.convert(openAPI);
         }
 
         public Builder withConfig(Swagger2MarkupConfig config) {
