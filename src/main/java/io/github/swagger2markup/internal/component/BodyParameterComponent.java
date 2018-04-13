@@ -45,6 +45,7 @@ import static io.github.swagger2markup.Labels.TYPE_COLUMN;
 import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.copyMarkupDocBuilder;
 import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.markupDescription;
 import static io.swagger.v3.parser.util.RefUtils.computeRefFormat;
+import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class BodyParameterComponent extends MarkupComponent<BodyParameterComponent.Parameters> {
@@ -73,9 +74,8 @@ public class BodyParameterComponent extends MarkupComponent<BodyParameterCompone
             if (CollectionUtils.isNotEmpty(parameters)) {
                 for (Parameter parameter : parameters) {
 
-                    final ResolverCache resolverCache = new ResolverCache(context.getSwagger(), null, null);
                     final Optional<RequestBody> requestBodyOptional =
-                            Optional.ofNullable(resolverCache.loadRef(parameter.get$ref(), computeRefFormat(parameter.get$ref()), RequestBody.class));
+                            Optional.ofNullable(context.getCache().loadRef(parameter.get$ref(), computeRefFormat(parameter.get$ref()), RequestBody.class));
 
                     requestBodyOptional.ifPresent(requestBody -> {
                         buildSectionTitle(markupDocBuilder, labels.getLabel(BODY_PARAMETER));

@@ -17,9 +17,11 @@ package io.github.swagger2markup.internal.utils;
 
 import io.swagger.v3.parser.models.RefFormat;
 
-import static io.swagger.v3.parser.util.RefUtils.computeRefFormat;
-
 public class RefUtils {
+    public static RefFormat computeRefFormat(String ref) {
+        return io.swagger.v3.parser.util.RefUtils.computeRefFormat(ref);
+    }
+
     public static String computeSimpleRef(String ref) {
         String result = ref;
         //simple refs really only apply to internal refs

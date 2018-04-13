@@ -24,13 +24,11 @@ import io.github.swagger2markup.internal.document.SecurityDocument;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilders;
 import io.github.swagger2markup.utils.URIUtils;
-import io.swagger.models.Swagger;
 import io.swagger.parser.OpenAPIParser;
-import io.swagger.parser.SwaggerParser;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.parser.ResolverCache;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.io.IOException;
@@ -45,6 +43,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Optional;
 
 
 /**
@@ -378,6 +377,7 @@ public class Swagger2MarkupConverter {
     public static class Context {
         private final Swagger2MarkupConfig config;
         private final OpenAPI swagger;
+        private final ResolverCache cache;
         private final URI swaggerLocation;
         private final Swagger2MarkupExtensionRegistry extensionRegistry;
         private final Labels labels;
@@ -390,6 +390,7 @@ public class Swagger2MarkupConverter {
             this.config = config;
             this.extensionRegistry = extensionRegistry;
             this.swagger = swagger;
+            this.cache = new ResolverCache(swagger, null, Optional.ofNullable(swaggerLocation).map(Object::toString).orElse(null));
             this.swaggerLocation = swaggerLocation;
             this.labels = new Labels(config);
         }
@@ -400,6 +401,10 @@ public class Swagger2MarkupConverter {
 
         public OpenAPI getSwagger() {
             return swagger;
+        }
+
+        public ResolverCache getCache() {
+            return cache;
         }
 
         public URI getSwaggerLocation() {
