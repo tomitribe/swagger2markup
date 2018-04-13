@@ -61,7 +61,7 @@ public class ParameterAdapter {
                             DocumentResolver definitionDocumentResolver) {
         Validate.notNull(parameter, "parameter must not be null");
         this.parameter = parameter;
-        type = getType(context.getSwagger().getComponents().getSchemas(), definitionDocumentResolver);
+        type = getType(definitionDocumentResolver);
         config = context.getConfig();
         if (config.isInlineSchemaEnabled()) {
             if (config.isFlatBodyEnabled()) {
@@ -149,7 +149,7 @@ public class ParameterAdapter {
      * @param definitionDocumentResolver the definition document resolver
      * @return the type of the parameter, or otherwise null
      */
-    private Type getType(Map<String, Schema> definitions, DocumentResolver definitionDocumentResolver) {
+    private Type getType(DocumentResolver definitionDocumentResolver) {
         Validate.notNull(parameter, "parameter must not be null!");
         Type type;
 
@@ -172,13 +172,6 @@ public class ParameterAdapter {
 
                 type = new ArrayType(serializableParameter.getName(), new PropertyAdapter(serializableParameter).getType(definitionDocumentResolver), collectionFormat);
             }
-        }
-
-        if (parameter.get$ref() != null) {
-            String refName = parameter.get$ref();
-            type = new RefType(definitionDocumentResolver.apply(refName), new ObjectType(refName, null));
-        } else {
-            // TODO - radcortez
         }
 
         return type;
