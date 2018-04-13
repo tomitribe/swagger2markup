@@ -275,6 +275,7 @@ public class PathOperationComponent extends MarkupComponent<PathOperationCompone
 
                 List<ObjectType> localDefinitions = new ArrayList<>();
                 propertiesTableComponent.apply(markupDocBuilder, PropertiesTableComponent.parameters(
+                        null,
                         definition.getProperties(),
                         uniquePrefix,
                         localDefinitions

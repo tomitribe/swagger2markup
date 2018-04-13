@@ -40,6 +40,7 @@ import io.swagger.models.properties.StringProperty;
 import io.swagger.models.properties.UUIDProperty;
 import io.swagger.models.refs.RefFormat;
 import io.swagger.v3.core.util.Json;
+import io.swagger.v3.core.util.RefUtils;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.BooleanSchema;
 import io.swagger.v3.oas.models.media.MapSchema;
@@ -60,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static io.github.swagger2markup.internal.utils.RefUtils.computeSimpleRef;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public final class PropertyAdapter {
@@ -154,8 +156,8 @@ public final class PropertyAdapter {
     public Type getType(DocumentResolver definitionDocumentResolver) {
         Type type;
         if (property.get$ref() != null) {
-            Schema refProperty = property;
-                type = new RefType(definitionDocumentResolver.apply(refProperty.get$ref()), new ObjectType(refProperty.get$ref(), null  /*FIXME, not used for now */));
+            String ref = computeSimpleRef(property.get$ref());
+            type = new RefType(definitionDocumentResolver.apply(ref), new ObjectType(ref, null  /*FIXME, not used for now */));
         } else if (property instanceof ArraySchema) {
             ArraySchema arrayProperty = (ArraySchema) property;
             Schema items = arrayProperty.getItems();

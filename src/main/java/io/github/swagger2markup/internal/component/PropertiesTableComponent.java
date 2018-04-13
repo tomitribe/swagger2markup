@@ -25,7 +25,6 @@ import io.github.swagger2markup.internal.type.RefType;
 import io.github.swagger2markup.internal.type.Type;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.spi.MarkupComponent;
-import io.swagger.models.properties.Property;
 import io.swagger.util.Json;
 import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.collections4.MapUtils;
@@ -38,7 +37,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static io.github.swagger2markup.Labels.*;
+import static io.github.swagger2markup.Labels.DEFAULT_COLUMN;
+import static io.github.swagger2markup.Labels.DESCRIPTION_COLUMN;
+import static io.github.swagger2markup.Labels.EXAMPLE_COLUMN;
+import static io.github.swagger2markup.Labels.FLAGS_OPTIONAL;
+import static io.github.swagger2markup.Labels.FLAGS_READ_ONLY;
+import static io.github.swagger2markup.Labels.FLAGS_REQUIRED;
+import static io.github.swagger2markup.Labels.LENGTH_COLUMN;
+import static io.github.swagger2markup.Labels.MAXLENGTH_COLUMN;
+import static io.github.swagger2markup.Labels.MAXVALUE_COLUMN;
+import static io.github.swagger2markup.Labels.MAXVALUE_EXCLUSIVE_COLUMN;
+import static io.github.swagger2markup.Labels.MINLENGTH_COLUMN;
+import static io.github.swagger2markup.Labels.MINVALUE_COLUMN;
+import static io.github.swagger2markup.Labels.MINVALUE_EXCLUSIVE_COLUMN;
+import static io.github.swagger2markup.Labels.NAME_COLUMN;
+import static io.github.swagger2markup.Labels.PATTERN_COLUMN;
+import static io.github.swagger2markup.Labels.SCHEMA_COLUMN;
 import static io.github.swagger2markup.internal.utils.InlineSchemaUtils.createInlineType;
 import static io.github.swagger2markup.internal.utils.MapUtils.toSortedMap;
 import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.copyMarkupDocBuilder;
@@ -64,10 +78,10 @@ public class PropertiesTableComponent extends MarkupComponent<PropertiesTableCom
         this.tableComponent = new TableComponent(context);
     }
 
-    public static PropertiesTableComponent.Parameters parameters(Map<String, Schema> properties,
+    public static PropertiesTableComponent.Parameters parameters(Schema model, Map<String, Schema> properties,
       String parameterName,
       List<ObjectType> inlineDefinitions) {
-        return new PropertiesTableComponent.Parameters(properties, parameterName, inlineDefinitions);
+        return new PropertiesTableComponent.Parameters(model, properties, parameterName, inlineDefinitions);
     }
 
     public MarkupDocBuilder apply(MarkupDocBuilder markupDocBuilder, Parameters params) {
@@ -107,7 +121,7 @@ public class PropertiesTableComponent extends MarkupComponent<PropertiesTableCom
 
                 MarkupDocBuilder propertyNameContent = copyMarkupDocBuilder(markupDocBuilder);
                 propertyNameContent.boldTextLine(propertyName, true);
-                if (property.getRequired() != null && !property.getRequired().isEmpty())
+                if (params.model.getRequired() != null && params.model.getRequired().contains(propertyName))
                     propertyNameContent.italicText(labels.getLabel(FLAGS_REQUIRED).toLowerCase());
                 else
                     propertyNameContent.italicText(labels.getLabel(FLAGS_OPTIONAL).toLowerCase());
@@ -221,14 +235,15 @@ public class PropertiesTableComponent extends MarkupComponent<PropertiesTableCom
     }
 
     public static class Parameters {
+        private final Schema model;
         private final Map<String, Schema> properties;
         private final String parameterName;
         private final List<ObjectType> inlineDefinitions;
 
-        public Parameters(Map<String, Schema> properties,
+        public Parameters(Schema model, Map<String, Schema> properties,
           String parameterName,
           List<ObjectType> inlineDefinitions) {
-
+            this.model = model;
             this.properties = Validate.notNull(properties, "Properties must not be null");
             this.parameterName = Validate.notBlank(parameterName, "ParameterName must not be blank");
             this.inlineDefinitions = Validate.notNull(inlineDefinitions, "InlineDefinitions must not be null");

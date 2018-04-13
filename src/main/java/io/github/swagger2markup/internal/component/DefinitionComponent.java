@@ -25,15 +25,21 @@ import io.github.swagger2markup.internal.utils.ModelUtils;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.spi.DefinitionsDocumentExtension;
 import io.github.swagger2markup.spi.MarkupComponent;
-import io.swagger.models.Model;
-import io.swagger.models.properties.Property;
 import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static io.github.swagger2markup.Labels.*;
+import static io.github.swagger2markup.Labels.POLYMORPHISM_COLUMN;
+import static io.github.swagger2markup.Labels.POLYMORPHISM_DISCRIMINATOR_COLUMN;
+import static io.github.swagger2markup.Labels.POLYMORPHISM_NATURE_COMPOSITION;
+import static io.github.swagger2markup.Labels.POLYMORPHISM_NATURE_INHERITANCE;
+import static io.github.swagger2markup.Labels.TYPE_COLUMN;
 import static io.github.swagger2markup.internal.utils.InlineSchemaUtils.createInlineType;
 import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.copyMarkupDocBuilder;
 import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.markupDescription;
@@ -79,7 +85,7 @@ public class DefinitionComponent extends MarkupComponent<DefinitionComponent.Par
         if (isNotBlank(description)) {
             markupDocBuilder.paragraph(markupDescription(config.getSwaggerMarkupLanguage(), markupDocBuilder, description));
         }
-        inlineDefinitions(markupDocBuilder, typeSection(markupDocBuilder, definitionName, model), definitionName);
+        inlineDefinitions(markupDocBuilder, model, typeSection(markupDocBuilder, definitionName, model), definitionName);
         applyDefinitionsDocumentExtension(new DefinitionsDocumentExtension.Context(Position.DEFINITION_END, markupDocBuilder, definitionName, model));
         applyDefinitionsDocumentExtension(new DefinitionsDocumentExtension.Context(Position.DEFINITION_AFTER, markupDocBuilder, definitionName, model));
 
@@ -107,15 +113,15 @@ public class DefinitionComponent extends MarkupComponent<DefinitionComponent.Par
      * @param definitions      all inline definitions to display
      * @param uniquePrefix     unique prefix to prepend to inline object names to enforce unicity
      */
-    private void inlineDefinitions(MarkupDocBuilder markupDocBuilder, List<ObjectType> definitions, String uniquePrefix) {
+    private void inlineDefinitions(MarkupDocBuilder markupDocBuilder, Schema model, List<ObjectType> definitions, String uniquePrefix) {
         if (CollectionUtils.isNotEmpty(definitions)) {
             for (ObjectType definition : definitions) {
                 addInlineDefinitionTitle(definition.getName(), definition.getUniqueName(), markupDocBuilder);
 
                 List<ObjectType> localDefinitions = new ArrayList<>();
-                propertiesTableComponent.apply(markupDocBuilder, new PropertiesTableComponent.Parameters(definition.getProperties(), uniquePrefix, localDefinitions));
+                propertiesTableComponent.apply(markupDocBuilder, new PropertiesTableComponent.Parameters(model, definition.getProperties(), uniquePrefix, localDefinitions));
                 for (ObjectType localDefinition : localDefinitions)
-                    inlineDefinitions(markupDocBuilder, Collections.singletonList(localDefinition), localDefinition.getUniqueName());
+                    inlineDefinitions(markupDocBuilder, model, Collections.singletonList(localDefinition), localDefinition.getUniqueName());
             }
         }
     }
@@ -163,6 +169,7 @@ public class DefinitionComponent extends MarkupComponent<DefinitionComponent.Par
             if (!properties.isEmpty()) {
                 propertiesTableComponent.apply(markupDocBuilder,
                         PropertiesTableComponent.parameters(
+                                model,
                                 properties,
                                 definitionName,
                                 inlineDefinitions));
