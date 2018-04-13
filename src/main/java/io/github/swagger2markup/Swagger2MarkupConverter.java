@@ -326,7 +326,7 @@ public class Swagger2MarkupConverter {
          */
         private OpenAPI readSwagger(String swaggerLocation) {
             final SwaggerParseResult swaggerParseResult =
-                    new OpenAPIParser().readContents(swaggerLocation, null, new ParseOptions());
+                    new OpenAPIParser().readLocation(swaggerLocation, null, new ParseOptions());
             final OpenAPI openAPI = swaggerParseResult.getOpenAPI();
             if (openAPI == null) {
                 throw new IllegalArgumentException("Failed to read the OpenAPI source");

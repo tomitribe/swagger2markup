@@ -106,26 +106,28 @@ public class ResponseComponent extends MarkupComponent<ResponseComponent.Paramet
                     for (Map.Entry<String, Header> header : headers.entrySet()) {
                         descriptionBuilder.newLine(true);
                         Header headerProperty = header.getValue();
-                        PropertyAdapter headerPropertyAdapter = new PropertyAdapter(headerProperty.getSchema());
-                        Type propertyType = headerPropertyAdapter.getType(definitionDocumentResolver);
                         String headerDescription = markupDescription(config.getSwaggerMarkupLanguage(), markupDocBuilder, headerProperty.getDescription());
-                        Optional<Object> optionalDefaultValue = headerPropertyAdapter.getDefaultValue();
+                        if (headerProperty.getSchema() != null) {
+                            PropertyAdapter headerPropertyAdapter = new PropertyAdapter(headerProperty.getSchema());
+                            Type propertyType = headerPropertyAdapter.getType(definitionDocumentResolver);
+                            Optional<Object> optionalDefaultValue = headerPropertyAdapter.getDefaultValue();
 
-                        descriptionBuilder
-                                .literalText(header.getKey())
-                                .text(String.format(" (%s)", propertyType.displaySchema(markupDocBuilder)));
+                            descriptionBuilder
+                                    .literalText(header.getKey())
+                                    .text(String.format(" (%s)", propertyType.displaySchema(markupDocBuilder)));
 
-                        if (isNotBlank(headerDescription) || optionalDefaultValue.isPresent()) {
-                            descriptionBuilder.text(COLON);
+                            if (isNotBlank(headerDescription) || optionalDefaultValue.isPresent()) {
+                                descriptionBuilder.text(COLON);
 
-                            if (isNotBlank(headerDescription) && !headerDescription.endsWith("."))
-                                headerDescription += ".";
+                                if (isNotBlank(headerDescription) && !headerDescription.endsWith("."))
+                                    headerDescription += ".";
 
-                            descriptionBuilder.text(headerDescription);
+                                descriptionBuilder.text(headerDescription);
 
-                            optionalDefaultValue.ifPresent(o -> descriptionBuilder.text(" ")
-                                    .boldText(labels.getLabel(DEFAULT_COLUMN))
-                                    .text(COLON).literalText(Json.pretty(o)));
+                                optionalDefaultValue.ifPresent(o -> descriptionBuilder.text(" ")
+                                                                                      .boldText(labels.getLabel(DEFAULT_COLUMN))
+                                                                                      .text(COLON).literalText(Json.pretty(o)));
+                            }
                         }
                     }
                 }

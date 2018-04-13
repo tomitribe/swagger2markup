@@ -30,11 +30,13 @@ import io.swagger.models.ModelImpl;
 import io.swagger.models.properties.Property;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.ComposedSchema;
+import io.swagger.v3.oas.models.media.Discriminator;
 import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.lang3.Validate;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -119,7 +121,8 @@ public final class ModelUtils {
             else if (modelImpl.getProperties() != null) {
                 ObjectType objectType = new ObjectType(modelImpl.getTitle(), model.getProperties());
 
-                objectType.getPolymorphism().setDiscriminator(modelImpl.getDiscriminator().getPropertyName());
+                objectType.getPolymorphism().setDiscriminator(
+                        Optional.ofNullable(modelImpl.getDiscriminator()).map(Discriminator::getPropertyName).orElse(null));
 
                 return objectType;
             } else if (isNotBlank(modelImpl.getFormat()))

@@ -151,21 +151,14 @@ public class ParameterAdapter {
      */
     private Type getType(Map<String, Schema> definitions, DocumentResolver definitionDocumentResolver) {
         Validate.notNull(parameter, "parameter must not be null!");
-        Type type = null;
+        Type type;
 
-        /*
-        if (parameter instanceof BodyParameter) {
-            BodyParameter bodyParameter = (BodyParameter) parameter;
-            Model model = bodyParameter.getSchema();
+        if (parameter.get$ref() != null) {
+            String refName = parameter.get$ref();
 
-            if (model != null) {
-                type = ModelUtils.getType(model, definitions, definitionDocumentResolver);
-            } else {
-                type = new BasicType("string", bodyParameter.getName());
-            }
-
-        } else if (parameter instanceof AbstractSerializableParameter) {
-            AbstractSerializableParameter serializableParameter = (AbstractSerializableParameter) parameter;
+            type = new RefType(definitionDocumentResolver.apply(refName), new ObjectType(refName, null));
+        } else {
+            Schema serializableParameter = parameter.getSchema();
             @SuppressWarnings("unchecked")
             List<String> enums = serializableParameter.getEnum();
 
@@ -175,16 +168,11 @@ public class ParameterAdapter {
                 type = new BasicType(serializableParameter.getType(), serializableParameter.getName(), serializableParameter.getFormat());
             }
             if (serializableParameter.getType().equals("array")) {
-                String collectionFormat = serializableParameter.getCollectionFormat();
+                String collectionFormat = serializableParameter.getFormat();
 
-                type = new ArrayType(serializableParameter.getName(), new PropertyAdapter(serializableParameter.getItems()).getType(definitionDocumentResolver), collectionFormat);
+                type = new ArrayType(serializableParameter.getName(), new PropertyAdapter(serializableParameter).getType(definitionDocumentResolver), collectionFormat);
             }
-        } else if (parameter instanceof RefParameter) {
-            String refName = ((RefParameter) parameter).getSimpleRef();
-
-            type = new RefType(definitionDocumentResolver.apply(refName), new ObjectType(refName, null));
         }
-        */
 
         if (parameter.get$ref() != null) {
             String refName = parameter.get$ref();

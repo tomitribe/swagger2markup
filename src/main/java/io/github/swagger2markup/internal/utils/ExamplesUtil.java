@@ -40,6 +40,7 @@ import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -107,7 +108,7 @@ public class ExamplesUtil {
      */
     public static Map<String, Object> generateRequestExampleMap(boolean generateMissingExamples, PathOperation pathOperation, Map<String, Schema> definitions, DocumentResolver definitionDocumentResolver, MarkupDocBuilder markupDocBuilder) {
         Operation operation = pathOperation.getOperation();
-        List<Parameter> parameters = operation.getParameters();
+        List<Parameter> parameters = Optional.ofNullable(operation.getParameters()).orElse(new ArrayList<>());
         Map<String, Object> examples = new LinkedHashMap<>();
 
         // Path example should always be included (if generateMissingExamples):
@@ -119,7 +120,7 @@ public class ExamplesUtil {
                 if (generateMissingExamples) {
                     Object abstractSerializableParameterExample;
                     abstractSerializableParameterExample = parameter.getExample();
-                    if (abstractSerializableParameterExample == null) {
+                    if (abstractSerializableParameterExample == null && parameter.getExtensions() != null) {
                         abstractSerializableParameterExample = parameter.getExtensions().get("x-example");
                     }
                     if (abstractSerializableParameterExample == null) {
@@ -159,33 +160,37 @@ public class ExamplesUtil {
                 example = generateExampleForRefModel(generateMissingExamples, simpleRef, definitions, definitionDocumentResolver, markupDocBuilder, new HashMap<>());
             }
 
-            final RequestBody requestBody = pathOperation.getOperation().getRequestBody();
-            final Optional<MediaType> mediaTypeOptional =
-                    Optional.ofNullable(requestBody.getContent())
-                            .flatMap(content -> content.values().stream().findFirst());
+            if (example != null)
+                examples.put(parameter.getIn(), example);
+        }
 
-            if (mediaTypeOptional.isPresent()) {
-                final Schema schema = mediaTypeOptional.get().getSchema();
-                if (schema.get$ref() != null) {
-                    String simpleRef = schema.get$ref();
-                    example = generateExampleForRefModel(generateMissingExamples, simpleRef, definitions, definitionDocumentResolver, markupDocBuilder, new HashMap<>());
-                } else if (generateMissingExamples) {
-                    if (schema instanceof ComposedSchema) {
-                        //FIXME: getProperties() may throw NullPointerException
-                        example = exampleMapForProperties(((ObjectType) ModelUtils.getType(schema, definitions, definitionDocumentResolver)).getProperties(), definitions, definitionDocumentResolver, markupDocBuilder, new HashMap<>());
-                    } else if (schema instanceof ArraySchema) {
-                        example = generateExampleForArrayModel((ArraySchema) schema, definitions, definitionDocumentResolver, markupDocBuilder, new HashMap<>());
-                    } else {
-                        example = schema.getExample();
-                        if (example == null) {
-                            example = exampleMapForProperties(schema.getProperties(), definitions, definitionDocumentResolver, markupDocBuilder, new HashMap<>());
-                        }
+        final RequestBody requestBody = pathOperation.getOperation().getRequestBody();
+        final Optional<MediaType> mediaTypeOptional =
+                Optional.ofNullable(requestBody).map(RequestBody::getContent)
+                        .flatMap(content -> content.values().stream().findFirst());
+
+        Object example = null;
+        if (mediaTypeOptional.isPresent()) {
+            final Schema schema = mediaTypeOptional.get().getSchema();
+            if (schema.get$ref() != null) {
+                String simpleRef = schema.get$ref();
+                example = generateExampleForRefModel(generateMissingExamples, simpleRef, definitions, definitionDocumentResolver, markupDocBuilder, new HashMap<>());
+            } else if (generateMissingExamples) {
+                if (schema instanceof ComposedSchema) {
+                    //FIXME: getProperties() may throw NullPointerException
+                    example = exampleMapForProperties(((ObjectType) ModelUtils.getType(schema, definitions, definitionDocumentResolver)).getProperties(), definitions, definitionDocumentResolver, markupDocBuilder, new HashMap<>());
+                } else if (schema instanceof ArraySchema) {
+                    example = generateExampleForArrayModel((ArraySchema) schema, definitions, definitionDocumentResolver, markupDocBuilder, new HashMap<>());
+                } else {
+                    example = schema.getExample();
+                    if (example == null) {
+                        example = exampleMapForProperties(schema.getProperties(), definitions, definitionDocumentResolver, markupDocBuilder, new HashMap<>());
                     }
                 }
             }
 
             if (example != null)
-                examples.put(parameter.getIn(), example);
+                examples.put(schema.getName(), example);
         }
 
         return examples;

@@ -42,6 +42,8 @@ import io.swagger.models.refs.RefFormat;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.BooleanSchema;
+import io.swagger.v3.oas.models.media.MapSchema;
+import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import org.apache.commons.collections4.CollectionUtils;
@@ -50,6 +52,7 @@ import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -149,29 +152,26 @@ public final class PropertyAdapter {
      * @return the type of the property
      */
     public Type getType(DocumentResolver definitionDocumentResolver) {
-        Type type = null;
-/*        if (property instanceof RefProperty) {
-            RefProperty refProperty = (RefProperty) property;
-            if (refProperty.getRefFormat() == RefFormat.RELATIVE)
-                type = new ObjectType(refProperty.getTitle(), null); // FIXME : Workaround for https://github.com/swagger-api/swagger-parser/issues/177
-            else
-                type = new RefType(definitionDocumentResolver.apply(refProperty.getSimpleRef()), new ObjectType(refProperty.getSimpleRef(), null  FIXME, not used for now ));
-        } else if (property instanceof ArrayProperty) {
-            ArrayProperty arrayProperty = (ArrayProperty) property;
-            Property items = arrayProperty.getItems();
+        Type type;
+        if (property.get$ref() != null) {
+            Schema refProperty = property;
+                type = new RefType(definitionDocumentResolver.apply(refProperty.get$ref()), new ObjectType(refProperty.get$ref(), null  /*FIXME, not used for now */));
+        } else if (property instanceof ArraySchema) {
+            ArraySchema arrayProperty = (ArraySchema) property;
+            Schema items = arrayProperty.getItems();
             if (items == null)
                 type = new ArrayType(arrayProperty.getTitle(), new ObjectType(null, null)); // FIXME : Workaround for Swagger parser issue with composed models (https://github.com/Swagger2Markup/swagger2markup/issues/150)
             else
                 type = new ArrayType(arrayProperty.getTitle(), new PropertyAdapter(items).getType(definitionDocumentResolver));
-        } else if (property instanceof MapProperty) {
-            MapProperty mapProperty = (MapProperty) property;
-            Property additionalProperties = mapProperty.getAdditionalProperties();
+        } else if (property instanceof MapSchema) {
+            MapSchema mapProperty = (MapSchema) property;
+            Schema additionalProperties = (Schema) mapProperty.getAdditionalProperties();
             if (additionalProperties == null)
                 type = new MapType(mapProperty.getTitle(), new ObjectType(null, null)); // FIXME : Workaround for Swagger parser issue with composed models (https://github.com/Swagger2Markup/swagger2markup/issues/150)
             else
                 type = new MapType(mapProperty.getTitle(), new PropertyAdapter(additionalProperties).getType(definitionDocumentResolver));
-        } else if (property instanceof StringProperty) {
-            StringProperty stringProperty = (StringProperty) property;
+        } else if (property instanceof StringSchema) {
+            StringSchema stringProperty = (StringSchema) property;
             List<String> enums = stringProperty.getEnum();
             if (CollectionUtils.isNotEmpty(enums)) {
                 type = new EnumType(stringProperty.getTitle(), enums);
@@ -180,15 +180,15 @@ public final class PropertyAdapter {
             } else {
                 type = new BasicType(stringProperty.getType(), stringProperty.getTitle());
             }
-        } else if (property instanceof ObjectProperty) {
-            type = new ObjectType(property.getTitle(), ((ObjectProperty) property).getProperties());
+        } else if (property instanceof ObjectSchema) {
+            type = new ObjectType(property.getTitle(), ((ObjectSchema) property).getProperties());
         } else {
             if (isNotBlank(property.getFormat())) {
                 type = new BasicType(property.getType(), property.getTitle(), property.getFormat());
             } else {
                 type = new BasicType(property.getType(), property.getTitle());
             }
-        }*/
+        }
         return type;
     }
 
@@ -243,7 +243,7 @@ public final class PropertyAdapter {
      * @return the exclusiveMinimum value of the property
      */
     public boolean getExclusiveMin() {
-        return property.getExclusiveMinimum();
+        return Optional.ofNullable(property.getExclusiveMinimum()).orElse(false);
     }
 
     /**
@@ -261,7 +261,7 @@ public final class PropertyAdapter {
      * @return the exclusiveMaximum value of the property
      */
     public boolean getExclusiveMax() {
-        return property.getExclusiveMaximum();
+        return Optional.ofNullable(property.getExclusiveMaximum()).orElse(false);
     }
 
     /**
@@ -272,11 +272,10 @@ public final class PropertyAdapter {
      * @return property example display string
      */
     public Optional<Object> getExample(boolean generateMissingExamples, MarkupDocBuilder markupDocBuilder) {
-        /*
         if (property.getExample() != null) {
             return Optional.ofNullable(property.getExample());
-        } else if (property instanceof MapProperty) {
-            Property additionalProperty = ((MapProperty) property).getAdditionalProperties();
+        } else if (property instanceof MapSchema) {
+            Schema additionalProperty = (Schema) property.getAdditionalProperties();
             if (additionalProperty.getExample() != null) {
                 return Optional.ofNullable(additionalProperty.getExample());
             } else if (generateMissingExamples) {
@@ -284,9 +283,9 @@ public final class PropertyAdapter {
                 exampleMap.put("string", generateExample(additionalProperty, markupDocBuilder));
                 return Optional.of(exampleMap);
             }
-        } else if (property instanceof ArrayProperty) {
+        } else if (property instanceof ArraySchema) {
             if (generateMissingExamples) {
-                Property itemProperty = ((ArrayProperty) property).getItems();
+                Schema itemProperty = ((ArraySchema) property).getItems();
                 List<Object> exampleArray = new ArrayList<>();
                 exampleArray.add(generateExample(itemProperty, markupDocBuilder));
                 return Optional.of(exampleArray);
@@ -294,7 +293,6 @@ public final class PropertyAdapter {
         } else if (generateMissingExamples) {
             return Optional.of(generateExample(property, markupDocBuilder));
         }
-        */
 
         return Optional.ofNullable(property.getExample());
     }

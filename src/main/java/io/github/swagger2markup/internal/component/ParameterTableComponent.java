@@ -63,6 +63,10 @@ public class ParameterTableComponent extends MarkupComponent<ParameterTableCompo
         PathOperation operation = params.operation;
         List<ObjectType> inlineDefinitions = params.inlineDefinitions;
         List<Parameter> parameters = operation.getOperation().getParameters();
+        if (parameters == null) {
+            return markupDocBuilder;
+        }
+
         if (config.getParameterOrdering() != null)
             parameters.sort(config.getParameterOrdering());
 

@@ -288,21 +288,24 @@ public class PathOperationComponent extends MarkupComponent<PathOperationCompone
 
     private void buildConsumesSection(MarkupDocBuilder markupDocBuilder, PathOperation operation) {
         // TODO - radcortez
+        /*
         List<String> consumes = new ArrayList<>(operation.getOperation().getRequestBody().getContent().keySet());
         if (CollectionUtils.isNotEmpty(consumes)) {
             consumesComponent.apply(markupDocBuilder, ConsumesComponent.parameters(consumes,
                     getSectionTitleLevel()));
         }
-
+        */
     }
 
     private void buildProducesSection(MarkupDocBuilder markupDocBuilder, PathOperation operation) {
         // TODO - radcortez
+        /*
         List<String> produces = new ArrayList<>(operation.getOperation().getRequestBody().getContent().keySet());
         if (CollectionUtils.isNotEmpty(produces)) {
             producesComponent.apply(markupDocBuilder, ProducesComponent.parameters(produces,
                     getSectionTitleLevel()));
         }
+        */
     }
 
     private void buildTagsSection(MarkupDocBuilder markupDocBuilder, PathOperation operation) {
