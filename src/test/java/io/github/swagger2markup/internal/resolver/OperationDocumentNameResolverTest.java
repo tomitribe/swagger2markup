@@ -21,7 +21,7 @@ import io.github.swagger2markup.builder.Swagger2MarkupConfigBuilder;
 import io.github.swagger2markup.markup.builder.MarkupLanguage;
 import io.github.swagger2markup.model.PathOperation;
 import io.swagger.models.HttpMethod;
-import io.swagger.models.Operation;
+import io.swagger.v3.oas.models.Operation;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -22,6 +22,8 @@ import io.github.swagger2markup.markup.builder.MarkupLanguage;
 import io.github.swagger2markup.spi.DefinitionsDocumentExtension;
 import io.swagger.models.Model;
 import io.swagger.models.Swagger;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.media.Schema;
 
 import java.io.StringReader;
 
@@ -36,7 +38,7 @@ public class MyExtension extends DefinitionsDocumentExtension {
         // init is executed once
         Swagger2MarkupProperties extensionProperties = globalContext.getConfig().getExtensionsProperties(); //<1>
         extensionProperty = extensionProperties.getRequiredString(EXTENSION_ID + ".propertyName");
-        Swagger model = globalContext.getSwagger();
+        OpenAPI model = globalContext.getSwagger();
     }
 
     @Override
@@ -44,7 +46,7 @@ public class MyExtension extends DefinitionsDocumentExtension {
         MarkupDocBuilder markupBuilder = context.getMarkupDocBuilder(); //<2>
         Position position = context.getPosition(); //<3>
         String definitionName = context.getDefinitionName().get();
-        Model definitionModel = context.getModel().get();
+        Schema definitionModel = context.getModel().get();
 
         if (position.equals(Position.DEFINITION_END)) {
             markupBuilder.sectionTitleLevel1(definitionName) //<4>

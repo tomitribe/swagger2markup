@@ -22,6 +22,7 @@ import io.github.swagger2markup.internal.utils.PathUtils;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.model.PathOperation;
 import io.swagger.models.Swagger;
+import io.swagger.v3.oas.models.OpenAPI;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +50,7 @@ public class SecuritySchemeComponentTest extends AbstractComponentTest {
         //Given
         Path file = Paths.get(SecuritySchemeComponentTest.class.getResource("/yaml/swagger_petstore.yaml").toURI());
         Swagger2MarkupConverter converter = Swagger2MarkupConverter.from(file).build();
-        Swagger swagger = converter.getContext().getSwagger();
+        OpenAPI swagger = converter.getContext().getSwagger();
 
         List<PathOperation> pathOperations = PathUtils.toPathOperationsList(swagger.getPaths(), "",
                 converter.getContext().getConfig().getOperationOrdering());

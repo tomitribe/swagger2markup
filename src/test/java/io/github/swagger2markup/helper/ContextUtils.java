@@ -37,6 +37,6 @@ public class ContextUtils {
 
     public static Swagger2MarkupConverter.Context createContext(Swagger2MarkupConfig config, Swagger swagger) {
         Swagger2MarkupExtensionRegistry extensionRegistry = new Swagger2MarkupExtensionRegistryBuilder().build();
-        return new Swagger2MarkupConverter.Context(config, extensionRegistry, swagger, null);
+        return new Swagger2MarkupConverter.Context(config, extensionRegistry, null, null);
     }
 }

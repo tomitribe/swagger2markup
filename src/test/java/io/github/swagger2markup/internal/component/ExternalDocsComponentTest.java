@@ -19,8 +19,9 @@ import io.github.swagger2markup.Swagger2MarkupConverter;
 import io.github.swagger2markup.assertions.DiffUtils;
 import io.github.swagger2markup.internal.document.OverviewDocument;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
-import io.swagger.models.ExternalDocs;
 import io.swagger.models.Swagger;
+import io.swagger.v3.oas.models.ExternalDocumentation;
+import io.swagger.v3.oas.models.OpenAPI;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,9 +49,9 @@ public class ExternalDocsComponentTest extends AbstractComponentTest {
 	    //Given
 	    Path file = Paths.get(DefinitionComponentTest.class.getResource("/yaml/swagger_petstore_20160612.yaml").toURI());
 	    Swagger2MarkupConverter converter = Swagger2MarkupConverter.from(file).build();
-	    Swagger swagger = converter.getContext().getSwagger();
+	    OpenAPI swagger = converter.getContext().getSwagger();
 
-	    ExternalDocs externalDocs = swagger.getExternalDocs();
+	    ExternalDocumentation externalDocs = swagger.getExternalDocs();
 	    Assert.assertNotNull(externalDocs);
 
 	    Swagger2MarkupConverter.Context context = converter.getContext();

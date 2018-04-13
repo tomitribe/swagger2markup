@@ -18,17 +18,20 @@ package io.github.swagger2markup.builder;
 import io.github.swagger2markup.spi.SwaggerModelExtension;
 import io.swagger.models.Path;
 import io.swagger.models.Swagger;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.Paths;
 
 import java.util.Map;
 
 // tag::MySwaggerModelExtension[]
 public class MySwaggerModelExtension extends SwaggerModelExtension {
 
-    public void apply(Swagger swagger) {
-        swagger.setHost("newHostName"); //<1>
-        swagger.basePath("newBasePath");
+    public void apply(OpenAPI swagger) {
+        //swagger.setHost("newHostName"); //<1>
+        //swagger.basePath("newBasePath");
 
-        Map<String, Path> paths = swagger.getPaths(); //<2>
+        final Paths paths = swagger.getPaths();//<2>
         paths.remove("/remove");
         swagger.setPaths(paths);
     }

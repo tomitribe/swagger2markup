@@ -22,6 +22,8 @@ import io.github.swagger2markup.internal.type.ObjectType;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.swagger.models.Model;
 import io.swagger.models.Swagger;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,9 +52,9 @@ public class PropertiesTableComponentTest extends AbstractComponentTest {
         //Given
         Path file = Paths.get(PropertiesTableComponentTest.class.getResource("/yaml/swagger_petstore.yaml").toURI());
         Swagger2MarkupConverter converter = Swagger2MarkupConverter.from(file).build();
-        Swagger swagger = converter.getContext().getSwagger();
+        OpenAPI swagger = converter.getContext().getSwagger();
 
-        Model petModel = swagger.getDefinitions().get("Pet");
+        Schema petModel = swagger.getComponents().getSchemas().get("Pet");
 
         Swagger2MarkupConverter.Context context = converter.getContext();
         MarkupDocBuilder markupDocBuilder = context.createMarkupDocBuilder();

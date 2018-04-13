@@ -25,7 +25,9 @@ import io.github.swagger2markup.internal.type.Type;
 import io.github.swagger2markup.internal.utils.PathUtils;
 import io.github.swagger2markup.model.PathOperation;
 import io.swagger.models.Swagger;
-import io.swagger.models.parameters.Parameter;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.parameters.Parameter;
 import org.junit.Test;
 
 import java.net.URISyntaxException;
@@ -43,9 +45,9 @@ public class ParameterAdapterTest {
         Path file = Paths.get(ParameterAdapterTest.class.getResource("/yaml/swagger_inlineSchema.yaml").toURI());
         Swagger2MarkupConverter converter = Swagger2MarkupConverter.from(file).build();
         Swagger2MarkupConverter.Context context = converter.getContext();
-        Swagger swagger = context.getSwagger();
+        OpenAPI swagger = context.getSwagger();
 
-        io.swagger.models.Path path = swagger.getPaths().get("/LaunchCommand");
+        PathItem path = swagger.getPaths().get("/LaunchCommand");
         List<PathOperation> pathOperations = PathUtils.toPathOperationsList("/LaunchCommand", path);
 
         PathOperation operation = pathOperations.get(0);

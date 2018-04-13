@@ -21,6 +21,7 @@ import io.github.swagger2markup.internal.document.OverviewDocument;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
+import io.swagger.v3.oas.models.OpenAPI;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +54,7 @@ public class UriSchemeComponentTest extends AbstractComponentTest {
         Swagger2MarkupConverter.Context context = createContext();
         MarkupDocBuilder markupDocBuilder = context.createMarkupDocBuilder();
 
-        markupDocBuilder = new UriSchemeComponent(context).apply(markupDocBuilder, UriSchemeComponent.parameters(swagger, OverviewDocument.SECTION_TITLE_LEVEL));
+        markupDocBuilder = new UriSchemeComponent(context).apply(markupDocBuilder, UriSchemeComponent.parameters(new OpenAPI(), OverviewDocument.SECTION_TITLE_LEVEL));
         markupDocBuilder.writeToFileWithoutExtension(outputDirectory, StandardCharsets.UTF_8);
 
         Path expectedFile = getExpectedFile(COMPONENT_NAME);

@@ -21,6 +21,8 @@ import io.github.swagger2markup.internal.document.OverviewDocument;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.swagger.models.Swagger;
 import io.swagger.models.auth.SecuritySchemeDefinition;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,9 +53,9 @@ public class SecuritySchemeDefinitionComponentTest extends AbstractComponentTest
         //Given
         Path file = Paths.get(SecuritySchemeDefinitionComponentTest.class.getResource("/yaml/swagger_petstore.yaml").toURI());
         Swagger2MarkupConverter converter = Swagger2MarkupConverter.from(file).build();
-        Swagger swagger = converter.getContext().getSwagger();
+        OpenAPI swagger = converter.getContext().getSwagger();
 
-        SecuritySchemeDefinition securitySchemeDefinition = swagger.getSecurityDefinitions().get("petstore_auth");
+        SecurityScheme securitySchemeDefinition = swagger.getComponents().getSecuritySchemes().get("petstore_auth");
 
         Swagger2MarkupConverter.Context context = converter.getContext();
         MarkupDocBuilder markupDocBuilder = context.createMarkupDocBuilder();
@@ -74,9 +76,9 @@ public class SecuritySchemeDefinitionComponentTest extends AbstractComponentTest
         //Given
         Path file = Paths.get(SecuritySchemeDefinitionComponentTest.class.getResource("/yaml/swagger_petstore.yaml").toURI());
         Swagger2MarkupConverter converter = Swagger2MarkupConverter.from(file).build();
-        Swagger swagger = converter.getContext().getSwagger();
+        OpenAPI swagger = converter.getContext().getSwagger();
 
-        SecuritySchemeDefinition securitySchemeDefinition = swagger.getSecurityDefinitions().get("api_key");
+        SecurityScheme securitySchemeDefinition = swagger.getComponents().getSecuritySchemes().get("api_key");
 
         Swagger2MarkupConverter.Context context = converter.getContext();
         MarkupDocBuilder markupDocBuilder = context.createMarkupDocBuilder();

@@ -19,7 +19,7 @@ import io.github.swagger2markup.Swagger2MarkupConverter;
 import io.github.swagger2markup.assertions.DiffUtils;
 import io.github.swagger2markup.internal.document.OverviewDocument;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
-import io.swagger.models.Tag;
+import io.swagger.v3.oas.models.tags.Tag;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;

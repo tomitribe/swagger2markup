@@ -18,6 +18,7 @@ package io.github.swagger2markup.builder;
 import io.github.swagger2markup.Swagger2MarkupExtensionRegistry;
 import io.github.swagger2markup.spi.SwaggerModelExtension;
 import io.swagger.models.Swagger;
+import io.swagger.v3.oas.models.OpenAPI;
 import org.junit.Test;
 
 import java.util.List;
@@ -37,7 +38,7 @@ public class Swagger2MarkupExtensionRegistryBuilderTest {
         SwaggerModelExtension ext1 = new MySwaggerModelExtension();
         SwaggerModelExtension ext2 = new MySwaggerModelExtension();
         SwaggerModelExtension ext3 = new SwaggerModelExtension() {
-            public void apply(Swagger swagger) {
+            public void apply(OpenAPI swagger) {
             }
         };
 
