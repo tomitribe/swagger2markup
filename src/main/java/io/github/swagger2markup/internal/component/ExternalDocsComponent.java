@@ -18,7 +18,7 @@ package io.github.swagger2markup.internal.component;
 import io.github.swagger2markup.Swagger2MarkupConverter;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.spi.MarkupComponent;
-import io.swagger.models.ExternalDocs;
+import io.swagger.v3.oas.models.ExternalDocumentation;
 import org.apache.commons.lang3.Validate;
 
 import static io.github.swagger2markup.Labels.EXTERNAL_DOCS;
@@ -33,13 +33,13 @@ public class ExternalDocsComponent extends MarkupComponent<ExternalDocsComponent
         super(context);
     }
 
-    public static ExternalDocsComponent.Parameters parameters(ExternalDocs externalDocs, int titleLevel) {
+    public static ExternalDocsComponent.Parameters parameters(ExternalDocumentation externalDocs, int titleLevel) {
         return new ExternalDocsComponent.Parameters(externalDocs, titleLevel);
     }
 
     @Override
     public MarkupDocBuilder apply(MarkupDocBuilder markupDocBuilder, Parameters params) {
-        ExternalDocs externalDocs = params.externalDocs;
+        ExternalDocumentation externalDocs = params.externalDocs;
         String description = externalDocs.getDescription();
         String url = externalDocs.getUrl();
         if ((description != null && (isNotBlank(description) || (url != null && isNotBlank(url))))) {
@@ -61,9 +61,9 @@ public class ExternalDocsComponent extends MarkupComponent<ExternalDocsComponent
 
     public static class Parameters {
         private final int titleLevel;
-        private final ExternalDocs externalDocs;
+        private final ExternalDocumentation externalDocs;
 
-        public Parameters(ExternalDocs externalDocs,
+        public Parameters(ExternalDocumentation externalDocs,
                           int titleLevel) {
             this.externalDocs = Validate.notNull(externalDocs, "ExternalDocs must not be null");
             this.titleLevel = titleLevel;

@@ -19,6 +19,7 @@ package io.github.swagger2markup.spi;
 import com.google.common.base.Optional;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.swagger.models.auth.SecuritySchemeDefinition;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.apache.commons.lang3.Validate;
 
 /**
@@ -80,7 +81,7 @@ public abstract class SecurityDocumentExtension extends AbstractExtension {
         /**
          * null if position == DOCUMENT_*
          */
-        private SecuritySchemeDefinition securityScheme;
+        private SecurityScheme securityScheme;
 
         /**
          * @param position   the current position
@@ -98,7 +99,7 @@ public abstract class SecurityDocumentExtension extends AbstractExtension {
          * @param securitySchemeName the name of the current securityScheme
          * @param securityScheme     the current security scheme securityScheme
          */
-        public Context(Position position, MarkupDocBuilder docBuilder, String securitySchemeName, SecuritySchemeDefinition securityScheme) {
+        public Context(Position position, MarkupDocBuilder docBuilder, String securitySchemeName, SecurityScheme securityScheme) {
             super(docBuilder);
             Validate.inclusiveBetween(Position.SECURITY_SCHEME_BEFORE, Position.SECURITY_SCHEME_AFTER, position);
             Validate.notNull(securitySchemeName);
@@ -116,7 +117,7 @@ public abstract class SecurityDocumentExtension extends AbstractExtension {
             return Optional.fromNullable(securitySchemeName);
         }
 
-        public Optional<SecuritySchemeDefinition> getSecurityScheme() {
+        public Optional<SecurityScheme> getSecurityScheme() {
             return Optional.fromNullable(securityScheme);
         }
     }

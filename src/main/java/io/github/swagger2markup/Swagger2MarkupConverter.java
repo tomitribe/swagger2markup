@@ -25,7 +25,11 @@ import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilders;
 import io.github.swagger2markup.utils.URIUtils;
 import io.swagger.models.Swagger;
+import io.swagger.parser.OpenAPIParser;
 import io.swagger.parser.SwaggerParser;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.parser.core.models.ParseOptions;
+import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -122,7 +126,7 @@ public class Swagger2MarkupConverter {
      * @param swagger the Swagger source.
      * @return a Swagger2MarkupConverter
      */
-    public static Builder from(Swagger swagger) {
+    public static Builder from(OpenAPI swagger) {
         Validate.notNull(swagger, "swagger must not be null");
         return new Builder(swagger);
     }
@@ -145,6 +149,8 @@ public class Swagger2MarkupConverter {
      * @return a Swagger2MarkupConverter
      */
     public static Builder from(Reader swaggerReader) {
+        throw new UnsupportedOperationException();
+        /*
         Validate.notNull(swaggerReader, "swaggerReader must not be null");
         Swagger swagger;
         try {
@@ -156,6 +162,7 @@ public class Swagger2MarkupConverter {
             throw new IllegalArgumentException("Swagger source is in a wrong format");
 
         return new Builder(swagger);
+        */
     }
 
     /**
@@ -202,13 +209,13 @@ public class Swagger2MarkupConverter {
     private MarkupDocBuilder applyDefinitionsDocument() {
         return definitionsDocument.apply(
                 context.createMarkupDocBuilder(),
-                DefinitionsDocument.parameters(context.getSwagger().getDefinitions()));
+                DefinitionsDocument.parameters(context.getSwagger().getComponents().getSchemas()));
     }
 
     private MarkupDocBuilder applySecurityDocument() {
         return securityDocument.apply(
                 context.createMarkupDocBuilder(),
-                SecurityDocument.parameters(context.getSwagger().getSecurityDefinitions()));
+                SecurityDocument.parameters(context.getSwagger().getComponents().getSecuritySchemes()));
     }
 
     /**
@@ -272,7 +279,7 @@ public class Swagger2MarkupConverter {
     }
 
     public static class Builder {
-        private final Swagger swagger;
+        private final OpenAPI swagger;
         private final URI swaggerLocation;
         private Swagger2MarkupConfig config;
         private Swagger2MarkupExtensionRegistry extensionRegistry;
@@ -306,7 +313,7 @@ public class Swagger2MarkupConverter {
          *
          * @param swagger the Swagger source.
          */
-        Builder(Swagger swagger) {
+        Builder(OpenAPI swagger) {
             this.swagger = swagger;
             this.swaggerLocation = null;
         }
@@ -317,12 +324,14 @@ public class Swagger2MarkupConverter {
          * @param swaggerLocation the location of the Swagger source
          * @return the Swagger model
          */
-        private Swagger readSwagger(String swaggerLocation) {
-            Swagger swagger = new SwaggerParser().read(swaggerLocation);
-            if (swagger == null) {
-                throw new IllegalArgumentException("Failed to read the Swagger source");
+        private OpenAPI readSwagger(String swaggerLocation) {
+            final SwaggerParseResult swaggerParseResult =
+                    new OpenAPIParser().readContents(swaggerLocation, null, new ParseOptions());
+            final OpenAPI openAPI = swaggerParseResult.getOpenAPI();
+            if (openAPI == null) {
+                throw new IllegalArgumentException("Failed to read the OpenAPI source");
             }
-            return swagger;
+            return openAPI;
         }
 
         public Builder withConfig(Swagger2MarkupConfig config) {
@@ -368,7 +377,7 @@ public class Swagger2MarkupConverter {
 
     public static class Context {
         private final Swagger2MarkupConfig config;
-        private final Swagger swagger;
+        private final OpenAPI swagger;
         private final URI swaggerLocation;
         private final Swagger2MarkupExtensionRegistry extensionRegistry;
         private final Labels labels;
@@ -376,7 +385,7 @@ public class Swagger2MarkupConverter {
 
         public Context(Swagger2MarkupConfig config,
                        Swagger2MarkupExtensionRegistry extensionRegistry,
-                       Swagger swagger,
+                       OpenAPI swagger,
                        URI swaggerLocation) {
             this.config = config;
             this.extensionRegistry = extensionRegistry;
@@ -389,7 +398,7 @@ public class Swagger2MarkupConverter {
             return config;
         }
 
-        public Swagger getSwagger() {
+        public OpenAPI getSwagger() {
             return swagger;
         }
 

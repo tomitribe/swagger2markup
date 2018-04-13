@@ -20,6 +20,7 @@ import io.github.swagger2markup.Swagger2MarkupConverter;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.spi.MarkupComponent;
 import io.swagger.models.Swagger;
+import io.swagger.v3.oas.models.OpenAPI;
 import org.apache.commons.lang3.Validate;
 
 import java.util.List;
@@ -37,13 +38,15 @@ public class UriSchemeComponent extends MarkupComponent<UriSchemeComponent.Param
         super(context);
     }
 
-    public static UriSchemeComponent.Parameters parameters(Swagger swagger, int titleLevel) {
+    public static UriSchemeComponent.Parameters parameters(OpenAPI swagger, int titleLevel) {
         return new UriSchemeComponent.Parameters(swagger, titleLevel);
     }
 
     @Override
     public MarkupDocBuilder apply(MarkupDocBuilder markupDocBuilder, Parameters params) {
-        Swagger swagger = params.swagger;
+        // TODO - radcortez
+        /*
+        OpenAPI swagger = params.swagger;
         if (isNotBlank(swagger.getHost()) || isNotBlank(swagger.getBasePath()) || isNotEmpty(swagger.getSchemes())) {
             markupDocBuilder.sectionTitleLevel(params.titleLevel, labels.getLabel(Labels.URI_SCHEME));
             MarkupDocBuilder paragraphBuilder = copyMarkupDocBuilder(markupDocBuilder);
@@ -64,15 +67,16 @@ public class UriSchemeComponent extends MarkupComponent<UriSchemeComponent.Param
             }
             markupDocBuilder.paragraph(paragraphBuilder.toString(), true);
         }
+        */
         return markupDocBuilder;
     }
 
     public static class Parameters {
 
         private final int titleLevel;
-        private final Swagger swagger;
+        private final OpenAPI swagger;
 
-        public Parameters(Swagger swagger, int titleLevel) {
+        public Parameters(OpenAPI swagger, int titleLevel) {
 
             this.swagger = Validate.notNull(swagger);
             this.titleLevel = titleLevel;

@@ -20,7 +20,11 @@ import io.github.swagger2markup.Swagger2MarkupConverter;
 import io.github.swagger2markup.internal.component.*;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.spi.MarkupComponent;
-import io.swagger.models.*;
+import io.swagger.v3.oas.models.ExternalDocumentation;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.tags.Tag;
 import org.apache.commons.lang3.Validate;
 
 import java.util.List;
@@ -56,7 +60,7 @@ public class OverviewDocument extends MarkupComponent<OverviewDocument.Parameter
 	    externalDocsComponent = new ExternalDocsComponent((context));
     }
 
-    public static OverviewDocument.Parameters parameters(Swagger swagger) {
+    public static OverviewDocument.Parameters parameters(OpenAPI swagger) {
         return new OverviewDocument.Parameters(swagger);
     }
 
@@ -67,7 +71,7 @@ public class OverviewDocument extends MarkupComponent<OverviewDocument.Parameter
      */
     @Override
     public MarkupDocBuilder apply(MarkupDocBuilder markupDocBuilder, OverviewDocument.Parameters params) {
-        Swagger swagger = params.swagger;
+        OpenAPI swagger = params.swagger;
         Info info = swagger.getInfo();
         buildDocumentTitle(markupDocBuilder, info.getTitle());
         applyOverviewDocumentExtension(new Context(Position.DOCUMENT_BEFORE, markupDocBuilder));
@@ -79,8 +83,9 @@ public class OverviewDocument extends MarkupComponent<OverviewDocument.Parameter
         buildLicenseInfoSection(markupDocBuilder, info);
         buildUriSchemeSection(markupDocBuilder, swagger);
         buildTagsSection(markupDocBuilder, swagger.getTags());
-        buildConsumesSection(markupDocBuilder, swagger.getConsumes());
-        buildProducesSection(markupDocBuilder, swagger.getProduces());
+        // TODO - radcortez
+        //buildConsumesSection(markupDocBuilder, swagger.getConsumes());
+        //buildProducesSection(markupDocBuilder, swagger.getProduces());
         buildExternalDocsSection(markupDocBuilder, swagger.getExternalDocs());
         applyOverviewDocumentExtension(new Context(Position.DOCUMENT_END, markupDocBuilder));
         applyOverviewDocumentExtension(new Context(Position.DOCUMENT_AFTER, markupDocBuilder));
@@ -119,7 +124,7 @@ public class OverviewDocument extends MarkupComponent<OverviewDocument.Parameter
         }
     }
 
-    private void buildUriSchemeSection(MarkupDocBuilder markupDocBuilder, Swagger swagger) {
+    private void buildUriSchemeSection(MarkupDocBuilder markupDocBuilder, OpenAPI swagger) {
         uriSchemeComponent.apply(markupDocBuilder, UriSchemeComponent.parameters(swagger, SECTION_TITLE_LEVEL));
     }
 
@@ -141,7 +146,7 @@ public class OverviewDocument extends MarkupComponent<OverviewDocument.Parameter
         }
     }
 
-    private void buildExternalDocsSection(MarkupDocBuilder markupDocBuilder, ExternalDocs externalDocs) {
+    private void buildExternalDocsSection(MarkupDocBuilder markupDocBuilder, ExternalDocumentation externalDocs) {
 	    if (externalDocs != null) {
 	    	externalDocsComponent.apply(markupDocBuilder, ExternalDocsComponent.parameters(externalDocs, SECTION_TITLE_LEVEL));
 	    }
@@ -157,9 +162,9 @@ public class OverviewDocument extends MarkupComponent<OverviewDocument.Parameter
     }
 
     public static class Parameters {
-        private final Swagger swagger;
+        private final OpenAPI swagger;
 
-        public Parameters(Swagger swagger) {
+        public Parameters(OpenAPI swagger) {
             this.swagger = Validate.notNull(swagger, "Swagger must not be null");
         }
     }

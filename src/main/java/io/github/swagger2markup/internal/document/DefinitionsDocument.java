@@ -24,6 +24,7 @@ import io.github.swagger2markup.internal.resolver.DefinitionDocumentResolverFrom
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.spi.MarkupComponent;
 import io.swagger.models.Model;
+import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.collections4.MapUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -67,7 +68,7 @@ public class DefinitionsDocument extends MarkupComponent<DefinitionsDocument.Par
         this.definitionDocumentResolverDefault = new DefinitionDocumentResolverDefault(context);
     }
 
-    public static DefinitionsDocument.Parameters parameters(Map<String, Model> definitions) {
+    public static DefinitionsDocument.Parameters parameters(Map<String, Schema> definitions) {
         return new DefinitionsDocument.Parameters(definitions);
     }
 
@@ -78,7 +79,7 @@ public class DefinitionsDocument extends MarkupComponent<DefinitionsDocument.Par
      */
     @Override
     public MarkupDocBuilder apply(MarkupDocBuilder markupDocBuilder, DefinitionsDocument.Parameters params) {
-        Map<String, Model> definitions = params.definitions;
+        Map<String, Schema> definitions = params.definitions;
         if (MapUtils.isNotEmpty(definitions)) {
             applyDefinitionsDocumentExtension(new Context(Position.DOCUMENT_BEFORE, markupDocBuilder));
             buildDefinitionsTitle(markupDocBuilder, labels.getLabel(Labels.DEFINITIONS));
@@ -94,9 +95,9 @@ public class DefinitionsDocument extends MarkupComponent<DefinitionsDocument.Par
         markupDocBuilder.sectionTitleWithAnchorLevel1(title, DEFINITIONS_ANCHOR);
     }
 
-    private void buildDefinitionsSection(MarkupDocBuilder markupDocBuilder, Map<String, Model> definitions) {
-        Map<String, Model> sortedMap = toSortedMap(definitions, config.getDefinitionOrdering());
-        sortedMap.forEach((String definitionName, Model model) -> {
+    private void buildDefinitionsSection(MarkupDocBuilder markupDocBuilder, Map<String, Schema> definitions) {
+        Map<String, Schema> sortedMap = toSortedMap(definitions, config.getDefinitionOrdering());
+        sortedMap.forEach((String definitionName, Schema model) -> {
             if (isNotBlank(definitionName)
                     && checkThatDefinitionIsNotInIgnoreList(definitionName)) {
                 buildDefinition(markupDocBuilder, definitionName, model);
@@ -119,7 +120,7 @@ public class DefinitionsDocument extends MarkupComponent<DefinitionsDocument.Par
      * @param definitionName definition name to process
      * @param model          definition model to process
      */
-    private void buildDefinition(MarkupDocBuilder markupDocBuilder, String definitionName, Model model) {
+    private void buildDefinition(MarkupDocBuilder markupDocBuilder, String definitionName, Schema model) {
         if (logger.isDebugEnabled()) {
             logger.debug("Definition processed : '{}'", definitionName);
         }
@@ -156,7 +157,7 @@ public class DefinitionsDocument extends MarkupComponent<DefinitionsDocument.Par
      * @param definitionName   the name of the definition
      * @param model            the Swagger Model of the definition
      */
-    private void applyDefinitionComponent(MarkupDocBuilder markupDocBuilder, String definitionName, Model model) {
+    private void applyDefinitionComponent(MarkupDocBuilder markupDocBuilder, String definitionName, Schema model) {
         definitionComponent.apply(markupDocBuilder, DefinitionComponent.parameters(
                 definitionName,
                 model,
@@ -184,9 +185,9 @@ public class DefinitionsDocument extends MarkupComponent<DefinitionsDocument.Par
     }
 
     public static class Parameters {
-        private final Map<String, Model> definitions;
+        private final Map<String, Schema> definitions;
 
-        public Parameters(Map<String, Model> definitions) {
+        public Parameters(Map<String, Schema> definitions) {
             this.definitions = definitions;
         }
     }

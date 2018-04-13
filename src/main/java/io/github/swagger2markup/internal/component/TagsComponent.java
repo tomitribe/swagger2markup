@@ -20,7 +20,7 @@ import io.github.swagger2markup.Labels;
 import io.github.swagger2markup.Swagger2MarkupConverter;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.spi.MarkupComponent;
-import io.swagger.models.Tag;
+import io.swagger.v3.oas.models.tags.Tag;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Collections;

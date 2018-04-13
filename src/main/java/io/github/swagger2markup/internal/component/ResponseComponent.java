@@ -26,9 +26,10 @@ import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.model.PathOperation;
 import io.github.swagger2markup.spi.MarkupComponent;
 import io.github.swagger2markup.spi.PathsDocumentExtension;
-import io.swagger.models.Response;
 import io.swagger.models.properties.Property;
 import io.swagger.util.Json;
+import io.swagger.v3.oas.models.headers.Header;
+import io.swagger.v3.oas.models.responses.ApiResponse;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -64,7 +65,7 @@ public class ResponseComponent extends MarkupComponent<ResponseComponent.Paramet
     @Override
     public MarkupDocBuilder apply(MarkupDocBuilder markupDocBuilder, Parameters params) {
         PathOperation operation = params.operation;
-        Map<String, Response> responses = operation.getOperation().getResponses();
+        Map<String, ApiResponse> responses = operation.getOperation().getResponses();
 
         MarkupDocBuilder responsesBuilder = copyMarkupDocBuilder(markupDocBuilder);
         applyPathsDocumentExtension(new PathsDocumentExtension.Context(PathsDocumentExtension.Position.OPERATION_RESPONSES_BEGIN, responsesBuilder, operation));
@@ -78,9 +79,11 @@ public class ResponseComponent extends MarkupComponent<ResponseComponent.Paramet
                     .putMetaData(TableComponent.WIDTH_RATIO, "4")
                     .putMetaData(TableComponent.HEADER_COLUMN, "true");
 
-            Map<String, Response> sortedResponses = toSortedMap(responses, config.getResponseOrdering());
-            sortedResponses.forEach((String responseName, Response response) -> {
+            Map<String, ApiResponse> sortedResponses = toSortedMap(responses, config.getResponseOrdering());
+            sortedResponses.forEach((String responseName, ApiResponse response) -> {
                 String schemaContent = labels.getLabel(NO_CONTENT);
+                // TODO - radcortez
+                /*
                 if (response.getSchema() != null) {
                     Property property = response.getSchema();
                     Type type = new PropertyAdapter(property).getType(definitionDocumentResolver);
@@ -91,15 +94,16 @@ public class ResponseComponent extends MarkupComponent<ResponseComponent.Paramet
 
                     schemaContent = type.displaySchema(markupDocBuilder);
                 }
+                */
 
                 MarkupDocBuilder descriptionBuilder = copyMarkupDocBuilder(markupDocBuilder);
 
                 descriptionBuilder.text(markupDescription(config.getSwaggerMarkupLanguage(), markupDocBuilder, response.getDescription()));
 
-                Map<String, Property> headers = response.getHeaders();
+                Map<String, Header> headers = response.getHeaders();
                 if (MapUtils.isNotEmpty(headers)) {
                     descriptionBuilder.newLine(true).boldText(labels.getLabel(HEADERS_COLUMN)).text(COLON);
-                    for (Map.Entry<String, Property> header : headers.entrySet()) {
+                    for (Map.Entry<String, Header> header : headers.entrySet()) {
                         descriptionBuilder.newLine(true);
                         Property headerProperty = header.getValue();
                         PropertyAdapter headerPropertyAdapter = new PropertyAdapter(headerProperty);

@@ -33,6 +33,7 @@ import io.github.swagger2markup.spi.MarkupComponent;
 import io.github.swagger2markup.spi.PathsDocumentExtension;
 import io.swagger.models.Model;
 import io.swagger.util.Json;
+import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -40,6 +41,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.github.swagger2markup.Labels.*;
 import static io.github.swagger2markup.PageBreakLocations.*;
@@ -51,7 +53,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public class PathOperationComponent extends MarkupComponent<PathOperationComponent.Parameters> {
 
     private final DocumentResolver definitionDocumentResolver;
-    private final Map<String, Model> definitions;
+    private final Map<String, Schema> definitions;
     private final PropertiesTableComponent propertiesTableComponent;
     private final ParameterTableComponent parameterTableComponent;
     private final ConsumesComponent consumesComponent;
@@ -64,7 +66,7 @@ public class PathOperationComponent extends MarkupComponent<PathOperationCompone
                                   DocumentResolver definitionDocumentResolver,
                                   DocumentResolver securityDocumentResolver) {
         super(context);
-        this.definitions = context.getSwagger().getDefinitions();
+        this.definitions = context.getSwagger().getComponents().getSchemas();
         this.definitionDocumentResolver = Validate.notNull(definitionDocumentResolver, "DocumentResolver must not be null");
         this.propertiesTableComponent = new PropertiesTableComponent(context, definitionDocumentResolver);
         this.parameterTableComponent = new ParameterTableComponent(context, definitionDocumentResolver);
@@ -158,7 +160,7 @@ public class PathOperationComponent extends MarkupComponent<PathOperationCompone
      * @param operation the Swagger Operation
      */
     private void buildDeprecatedSection(MarkupDocBuilder markupDocBuilder, PathOperation operation) {
-        if (BooleanUtils.isTrue(operation.getOperation().isDeprecated())) {
+        if (BooleanUtils.isTrue(operation.getOperation().getDeprecated())) {
             markupDocBuilder.block(DEPRECATED_OPERATION, MarkupBlockStyle.EXAMPLE, null, MarkupAdmonition.CAUTION);
         }
     }
@@ -285,7 +287,8 @@ public class PathOperationComponent extends MarkupComponent<PathOperationCompone
     }
 
     private void buildConsumesSection(MarkupDocBuilder markupDocBuilder, PathOperation operation) {
-        List<String> consumes = operation.getOperation().getConsumes();
+        // TODO - radcortez
+        List<String> consumes = new ArrayList<>(operation.getOperation().getRequestBody().getContent().keySet());
         if (CollectionUtils.isNotEmpty(consumes)) {
             consumesComponent.apply(markupDocBuilder, ConsumesComponent.parameters(consumes,
                     getSectionTitleLevel()));
@@ -294,7 +297,8 @@ public class PathOperationComponent extends MarkupComponent<PathOperationCompone
     }
 
     private void buildProducesSection(MarkupDocBuilder markupDocBuilder, PathOperation operation) {
-        List<String> produces = operation.getOperation().getProduces();
+        // TODO - radcortez
+        List<String> produces = new ArrayList<>(operation.getOperation().getRequestBody().getContent().keySet());
         if (CollectionUtils.isNotEmpty(produces)) {
             producesComponent.apply(markupDocBuilder, ProducesComponent.parameters(produces,
                     getSectionTitleLevel()));

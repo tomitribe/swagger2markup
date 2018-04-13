@@ -17,12 +17,13 @@
 package io.github.swagger2markup.spi;
 
 import io.swagger.models.Swagger;
+import io.swagger.v3.oas.models.OpenAPI;
 
 /**
  * SwaggerModelExtension extension point can be used to preprocess the Swagger model.
  */
 public abstract class SwaggerModelExtension extends AbstractExtension {
 
-    public abstract void apply(Swagger swagger);
+    public abstract void apply(OpenAPI swagger);
 
 }

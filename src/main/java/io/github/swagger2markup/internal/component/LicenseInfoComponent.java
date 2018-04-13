@@ -18,8 +18,8 @@ package io.github.swagger2markup.internal.component;
 import io.github.swagger2markup.Swagger2MarkupConverter;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.spi.MarkupComponent;
-import io.swagger.models.Info;
-import io.swagger.models.License;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
 import org.apache.commons.lang3.Validate;
 
 import static io.github.swagger2markup.Labels.*;

@@ -17,7 +17,7 @@
 package io.github.swagger2markup.spi;
 
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
-import io.swagger.models.Model;
+import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Optional;
@@ -82,7 +82,7 @@ public abstract class DefinitionsDocumentExtension extends AbstractExtension {
         /**
          * null if position == DOCUMENT_*
          */
-        private Model model;
+        private Schema model;
 
         /**
          * @param position   the current position
@@ -100,7 +100,7 @@ public abstract class DefinitionsDocumentExtension extends AbstractExtension {
          * @param definitionName the name of the current definition
          * @param model          the current Model of the definition
          */
-        public Context(Position position, MarkupDocBuilder docBuilder, String definitionName, Model model) {
+        public Context(Position position, MarkupDocBuilder docBuilder, String definitionName, Schema model) {
             super(docBuilder);
             Validate.inclusiveBetween(Position.DEFINITION_BEFORE, Position.DEFINITION_AFTER, position);
             Validate.notNull(definitionName);
@@ -118,7 +118,7 @@ public abstract class DefinitionsDocumentExtension extends AbstractExtension {
             return Optional.ofNullable(definitionName);
         }
 
-        public Optional<Model> getModel() {
+        public Optional<Schema> getModel() {
             return Optional.ofNullable(model);
         }
     }

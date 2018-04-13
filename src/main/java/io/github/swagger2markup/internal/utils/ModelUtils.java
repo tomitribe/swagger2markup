@@ -22,6 +22,8 @@ import io.github.swagger2markup.internal.type.*;
 import io.swagger.models.*;
 import io.swagger.models.properties.Property;
 import io.swagger.models.refs.RefFormat;
+import io.swagger.v3.oas.models.media.ComposedSchema;
+import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.lang3.Validate;
 
 import java.util.LinkedHashMap;
@@ -54,7 +56,7 @@ public final class ModelUtils {
      * @param definitionDocumentResolver the definition document resolver
      * @return the type of the model, or otherwise null
      */
-    public static Type getType(Model model, Map<String, Model> definitions, DocumentResolver definitionDocumentResolver) {
+    public static Type getType(Schema model, Map<String, Schema> definitions, DocumentResolver definitionDocumentResolver) {
         Validate.notNull(model, "model must not be null!");
         if (model instanceof ModelImpl) {
             ModelImpl modelImpl = (ModelImpl) model;
@@ -73,8 +75,8 @@ public final class ModelUtils {
                 return new BasicType(modelImpl.getType(), modelImpl.getTitle(), modelImpl.getFormat());
             else
                 return new BasicType(modelImpl.getType(), modelImpl.getTitle());
-        } else if (model instanceof ComposedModel) {
-            ComposedModel composedModel = (ComposedModel) model;
+        } else if (model instanceof ComposedSchema) {
+            ComposedSchema composedModel = (ComposedSchema) model;
             Map<String, Property> allProperties = new LinkedHashMap<>();
             ObjectTypePolymorphism polymorphism = new ObjectTypePolymorphism(ObjectTypePolymorphism.Nature.NONE, null);
             String name = model.getTitle();
@@ -82,7 +84,7 @@ public final class ModelUtils {
             if (composedModel.getAllOf() != null) {
                 polymorphism.setNature(ObjectTypePolymorphism.Nature.COMPOSITION);
 
-                for (Model innerModel : composedModel.getAllOf()) {
+                for (Schema innerModel : composedModel.getAllOf()) {
                     Type innerModelType = resolveRefType(getType(innerModel, definitions, definitionDocumentResolver));
                     name = innerModelType.getName();
 

@@ -15,11 +15,15 @@
  */
 package io.github.swagger2markup.internal.adapter;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.github.swagger2markup.Swagger2MarkupConfig;
 import io.github.swagger2markup.Swagger2MarkupConverter;
 import io.github.swagger2markup.internal.resolver.DocumentResolver;
-import io.github.swagger2markup.internal.type.*;
+import io.github.swagger2markup.internal.type.ArrayType;
+import io.github.swagger2markup.internal.type.BasicType;
+import io.github.swagger2markup.internal.type.EnumType;
+import io.github.swagger2markup.internal.type.ObjectType;
+import io.github.swagger2markup.internal.type.RefType;
+import io.github.swagger2markup.internal.type.Type;
 import io.github.swagger2markup.internal.utils.InlineSchemaUtils;
 import io.github.swagger2markup.internal.utils.ModelUtils;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
@@ -27,9 +31,10 @@ import io.github.swagger2markup.model.PathOperation;
 import io.swagger.models.Model;
 import io.swagger.models.parameters.AbstractSerializableParameter;
 import io.swagger.models.parameters.BodyParameter;
-import io.swagger.models.parameters.Parameter;
 import io.swagger.models.parameters.RefParameter;
 import io.swagger.util.Json;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.parameters.Parameter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.text.WordUtils;
@@ -39,7 +44,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.*;
+import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.boldText;
+import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.literalText;
+import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.markupDescription;
 
 public class ParameterAdapter {
 
@@ -54,7 +61,7 @@ public class ParameterAdapter {
                             DocumentResolver definitionDocumentResolver) {
         Validate.notNull(parameter, "parameter must not be null");
         this.parameter = parameter;
-        type = getType(context.getSwagger().getDefinitions(), definitionDocumentResolver);
+        type = getType(context.getSwagger().getComponents().getSchemas(), definitionDocumentResolver);
         config = context.getConfig();
         if (config.isInlineSchemaEnabled()) {
             if (config.isFlatBodyEnabled()) {
@@ -86,11 +93,6 @@ public class ParameterAdapter {
             default:
                 return parameter.getType();
         }
-    }
-
-    @JsonIgnore
-    public String getAccess() {
-        return parameter.getAccess();
     }
 
     public String getName() {
@@ -125,12 +127,8 @@ public class ParameterAdapter {
         return parameter.getRequired();
     }
 
-    public String getPattern() {
-        return parameter.getPattern();
-    }
-
     public Map<String, Object> getVendorExtensions() {
-        return parameter.getVendorExtensions();
+        return parameter.getExtensions();
     }
 
     public String getIn() {
@@ -151,10 +149,11 @@ public class ParameterAdapter {
      * @param definitionDocumentResolver the definition document resolver
      * @return the type of the parameter, or otherwise null
      */
-    private Type getType(Map<String, Model> definitions, DocumentResolver definitionDocumentResolver) {
+    private Type getType(Map<String, Schema> definitions, DocumentResolver definitionDocumentResolver) {
         Validate.notNull(parameter, "parameter must not be null!");
         Type type = null;
 
+        /*
         if (parameter instanceof BodyParameter) {
             BodyParameter bodyParameter = (BodyParameter) parameter;
             Model model = bodyParameter.getSchema();
@@ -183,8 +182,17 @@ public class ParameterAdapter {
         } else if (parameter instanceof RefParameter) {
             String refName = ((RefParameter) parameter).getSimpleRef();
 
-            type = new RefType(definitionDocumentResolver.apply(refName), new ObjectType(refName, null /* FIXME, not used for now */));
+            type = new RefType(definitionDocumentResolver.apply(refName), new ObjectType(refName, null));
         }
+        */
+
+        if (parameter.get$ref() != null) {
+            String refName = parameter.get$ref();
+            type = new RefType(definitionDocumentResolver.apply(refName), new ObjectType(refName, null));
+        } else {
+            // TODO - radcortez
+        }
+
         return type;
     }
 
@@ -195,11 +203,7 @@ public class ParameterAdapter {
      */
     public Optional<Object> getDefaultValue() {
         Validate.notNull(parameter, "parameter must not be null!");
-        if (parameter instanceof AbstractSerializableParameter) {
-            AbstractSerializableParameter serializableParameter = (AbstractSerializableParameter) parameter;
-            return Optional.ofNullable(serializableParameter.getDefaultValue());
-        }
-        return Optional.empty();
+        return Optional.ofNullable(parameter);
     }
 
 }

@@ -17,8 +17,8 @@ package io.github.swagger2markup.internal.utils;
 
 import io.github.swagger2markup.model.PathOperation;
 import io.swagger.models.HttpMethod;
-import io.swagger.models.Operation;
-import io.swagger.models.Path;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
 
 import java.util.*;
 
@@ -30,7 +30,7 @@ public class PathUtils {
      * @param path the path
      * @return the operations of a path as a map
      */
-    private static Map<HttpMethod, Operation> getOperationMap(Path path) {
+    private static Map<HttpMethod, Operation> getOperationMap(PathItem path) {
         Map<HttpMethod, Operation> result = new LinkedHashMap<>();
 
         if (path.getGet() != null) {
@@ -66,7 +66,7 @@ public class PathUtils {
      * @param comparator the comparator to use.
      * @return the path operations
      */
-    public static List<PathOperation> toPathOperationsList(Map<String, Path> paths,
+    public static List<PathOperation> toPathOperationsList(Map<String, PathItem> paths,
                                                            String basePath,
                                                            Comparator<PathOperation> comparator) {
         List<PathOperation> pathOperations = new ArrayList<>();
@@ -86,7 +86,7 @@ public class PathUtils {
      * @param pathModel the Swagger Path model
      * @return the path operations
      */
-    public static List<PathOperation> toPathOperationsList(String path, Path pathModel) {
+    public static List<PathOperation> toPathOperationsList(String path, PathItem pathModel) {
         List<PathOperation> pathOperations = new ArrayList<>();
         getOperationMap(pathModel).forEach((httpMethod, operation) ->
                 pathOperations.add(new PathOperation(httpMethod, path, operation)));

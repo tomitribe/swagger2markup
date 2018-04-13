@@ -19,7 +19,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import io.github.swagger2markup.model.PathOperation;
-import io.swagger.models.Tag;
+import io.swagger.v3.oas.models.tags.Tag;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

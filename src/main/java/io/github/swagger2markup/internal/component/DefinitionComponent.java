@@ -27,6 +27,7 @@ import io.github.swagger2markup.spi.DefinitionsDocumentExtension;
 import io.github.swagger2markup.spi.MarkupComponent;
 import io.swagger.models.Model;
 import io.swagger.models.properties.Property;
+import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -44,7 +45,7 @@ public class DefinitionComponent extends MarkupComponent<DefinitionComponent.Par
     /* Discriminator is only displayed for inheriting definitions */
     private static final boolean ALWAYS_DISPLAY_DISCRIMINATOR = false;
 
-    private final Map<String, Model> definitions;
+    private final Map<String, Schema> definitions;
     private final Map<ObjectTypePolymorphism.Nature, String> POLYMORPHISM_NATURE;
     private final DocumentResolver definitionsDocumentResolver;
     private PropertiesTableComponent propertiesTableComponent;
@@ -52,7 +53,7 @@ public class DefinitionComponent extends MarkupComponent<DefinitionComponent.Par
     public DefinitionComponent(Swagger2MarkupConverter.Context context,
                                DocumentResolver definitionsDocumentResolver) {
         super(context);
-        this.definitions = context.getSwagger().getDefinitions();
+        this.definitions = context.getSwagger().getComponents().getSchemas();
         this.definitionsDocumentResolver = definitionsDocumentResolver;
         POLYMORPHISM_NATURE = new HashMap<ObjectTypePolymorphism.Nature, String>() {{
             put(ObjectTypePolymorphism.Nature.COMPOSITION, labels.getLabel(POLYMORPHISM_NATURE_COMPOSITION));
@@ -62,7 +63,7 @@ public class DefinitionComponent extends MarkupComponent<DefinitionComponent.Par
     }
 
     public static DefinitionComponent.Parameters parameters(String definitionName,
-                                                            Model model,
+                                                            Schema model,
                                                             int titleLevel) {
         return new DefinitionComponent.Parameters(definitionName, model, titleLevel);
     }
@@ -70,7 +71,7 @@ public class DefinitionComponent extends MarkupComponent<DefinitionComponent.Par
     @Override
     public MarkupDocBuilder apply(MarkupDocBuilder markupDocBuilder, Parameters params) {
         String definitionName = params.definitionName;
-        Model model = params.model;
+        Schema model = params.model;
         applyDefinitionsDocumentExtension(new DefinitionsDocumentExtension.Context(Position.DEFINITION_BEFORE, markupDocBuilder, definitionName, model));
         markupDocBuilder.sectionTitleWithAnchorLevel(params.titleLevel, definitionName, definitionName);
         applyDefinitionsDocumentExtension(new DefinitionsDocumentExtension.Context(Position.DEFINITION_BEGIN, markupDocBuilder, definitionName, model));
@@ -127,7 +128,7 @@ public class DefinitionComponent extends MarkupComponent<DefinitionComponent.Par
      * @param model            model of the definition to display
      * @return a list of inlined types.
      */
-    private List<ObjectType> typeSection(MarkupDocBuilder markupDocBuilder, String definitionName, Model model) {
+    private List<ObjectType> typeSection(MarkupDocBuilder markupDocBuilder, String definitionName, Schema model) {
         List<ObjectType> inlineDefinitions = new ArrayList<>();
         Type modelType = ModelUtils.resolveRefType(ModelUtils.getType(model, definitions, definitionsDocumentResolver));
 
@@ -187,11 +188,11 @@ public class DefinitionComponent extends MarkupComponent<DefinitionComponent.Par
 
     public static class Parameters {
         private final String definitionName;
-        private final Model model;
+        private final Schema model;
         private final int titleLevel;
 
         public Parameters(String definitionName,
-                          Model model,
+                          Schema model,
                           int titleLevel) {
             this.definitionName = Validate.notBlank(definitionName, "DefinitionName must not be empty");
             this.model = Validate.notNull(model, "Model must not be null");

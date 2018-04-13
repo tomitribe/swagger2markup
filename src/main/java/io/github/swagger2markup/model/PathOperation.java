@@ -17,7 +17,7 @@
 package io.github.swagger2markup.model;
 
 import io.swagger.models.HttpMethod;
-import io.swagger.models.Operation;
+import io.swagger.v3.oas.models.Operation;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 

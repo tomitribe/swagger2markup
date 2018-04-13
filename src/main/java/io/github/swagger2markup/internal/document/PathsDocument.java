@@ -31,8 +31,8 @@ import io.github.swagger2markup.internal.utils.TagUtils;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.model.PathOperation;
 import io.github.swagger2markup.spi.MarkupComponent;
-import io.swagger.models.Path;
-import io.swagger.models.Tag;
+import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.tags.Tag;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -84,7 +84,7 @@ public class PathsDocument extends MarkupComponent<PathsDocument.Parameters> {
         }
     }
 
-    public static PathsDocument.Parameters parameters(Map<String, Path> paths) {
+    public static PathsDocument.Parameters parameters(Map<String, PathItem> paths) {
         return new PathsDocument.Parameters(paths);
     }
 
@@ -95,7 +95,7 @@ public class PathsDocument extends MarkupComponent<PathsDocument.Parameters> {
      */
     @Override
     public MarkupDocBuilder apply(MarkupDocBuilder markupDocBuilder, PathsDocument.Parameters params) {
-        Map<String, Path> paths = params.paths;
+        Map<String, PathItem> paths = params.paths;
         if (MapUtils.isNotEmpty(paths)) {
             applyPathsDocumentExtension(new Context(Position.DOCUMENT_BEFORE, markupDocBuilder));
             buildPathsTitle(markupDocBuilder);
@@ -112,7 +112,7 @@ public class PathsDocument extends MarkupComponent<PathsDocument.Parameters> {
      *
      * @param paths the Swagger paths
      */
-    private void buildsPathsSection(MarkupDocBuilder markupDocBuilder, Map<String, Path> paths) {
+    private void buildsPathsSection(MarkupDocBuilder markupDocBuilder, Map<String, PathItem> paths) {
         List<PathOperation> pathOperations = PathUtils.toPathOperationsList(paths, getBasePath(), config.getOperationOrdering());
         if (CollectionUtils.isNotEmpty(pathOperations)) {
             if (config.getPathsGroupedBy() == GroupBy.AS_IS) {
@@ -169,7 +169,7 @@ public class PathsDocument extends MarkupComponent<PathsDocument.Parameters> {
      */
     private String getBasePath() {
         if (config.isBasePathPrefixEnabled()) {
-            return StringUtils.defaultString(context.getSwagger().getBasePath());
+            return StringUtils.defaultString("TODO - radcortez - context.getSwagger().getBasePath()");
         }
         return "";
     }
@@ -249,9 +249,9 @@ public class PathsDocument extends MarkupComponent<PathsDocument.Parameters> {
     }
 
     public static class Parameters {
-        private final Map<String, Path> paths;
+        private final Map<String, PathItem> paths;
 
-        public Parameters(Map<String, Path> paths) {
+        public Parameters(Map<String, PathItem> paths) {
             this.paths = paths;
         }
     }

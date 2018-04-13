@@ -24,7 +24,8 @@ import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.model.PathOperation;
 import io.github.swagger2markup.spi.MarkupComponent;
 import io.github.swagger2markup.spi.PathsDocumentExtension;
-import io.swagger.models.auth.SecuritySchemeDefinition;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -32,20 +33,26 @@ import java.util.List;
 import java.util.Map;
 
 import static ch.netzwerg.paleo.ColumnIds.StringColumnId;
-import static io.github.swagger2markup.Labels.*;
-import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.*;
+import static io.github.swagger2markup.Labels.NAME_COLUMN;
+import static io.github.swagger2markup.Labels.SCOPES_COLUMN;
+import static io.github.swagger2markup.Labels.SECURITY;
+import static io.github.swagger2markup.Labels.TYPE_COLUMN;
+import static io.github.swagger2markup.Labels.UNKNOWN;
+import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.boldText;
+import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.copyMarkupDocBuilder;
+import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.crossReference;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class SecuritySchemeComponent extends MarkupComponent<SecuritySchemeComponent.Parameters> {
 
-    private final Map<String, SecuritySchemeDefinition> securityDefinitions;
+    private final Map<String, SecurityScheme> securityDefinitions;
     private final DocumentResolver securityDocumentResolver;
     private final TableComponent tableComponent;
 
     public SecuritySchemeComponent(Swagger2MarkupConverter.Context context,
                                    DocumentResolver securityDocumentResolver) {
         super(context);
-        this.securityDefinitions = context.getSwagger().getSecurityDefinitions();
+        this.securityDefinitions = context.getSwagger().getComponents().getSecuritySchemes();
         this.securityDocumentResolver = Validate.notNull(securityDocumentResolver, "SecurityDocumentResolver must not be null");
         this.tableComponent = new TableComponent(context);
     }
@@ -59,7 +66,7 @@ public class SecuritySchemeComponent extends MarkupComponent<SecuritySchemeCompo
     public MarkupDocBuilder apply(MarkupDocBuilder markupDocBuilder, Parameters params) {
         PathOperation operation = params.operation;
         MarkupDocBuilder securityBuilder = copyMarkupDocBuilder(markupDocBuilder);
-        List<Map<String, List<String>>> securitySchemes = operation.getOperation().getSecurity();
+        final List<SecurityRequirement> securitySchemes = operation.getOperation().getSecurity();
         applyPathsDocumentExtension(new PathsDocumentExtension.Context(PathsDocumentExtension.Position.OPERATION_SECURITY_BEGIN, securityBuilder, operation));
         if (CollectionUtils.isNotEmpty(securitySchemes)) {
             StringColumn.Builder typeColumnBuilder = StringColumn.builder(StringColumnId.of(labels.getLabel(TYPE_COLUMN)))
@@ -76,7 +83,7 @@ public class SecuritySchemeComponent extends MarkupComponent<SecuritySchemeCompo
                     String securityKey = securityEntry.getKey();
                     String type = labels.getLabel(UNKNOWN);
                     if (securityDefinitions != null && securityDefinitions.containsKey(securityKey)) {
-                        type = securityDefinitions.get(securityKey).getType();
+                        type = securityDefinitions.get(securityKey).getType().toString();
                     }
 
                     typeColumnBuilder.add(boldText(markupDocBuilder, type));

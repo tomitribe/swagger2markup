@@ -21,9 +21,8 @@ import io.github.swagger2markup.Swagger2MarkupConverter;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.spi.MarkupComponent;
 import io.github.swagger2markup.spi.SecurityDocumentExtension;
-import io.swagger.models.auth.ApiKeyAuthDefinition;
-import io.swagger.models.auth.OAuth2Definition;
-import io.swagger.models.auth.SecuritySchemeDefinition;
+import io.swagger.v3.oas.models.security.OAuthFlow;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Map;
@@ -45,7 +44,7 @@ public class SecuritySchemeDefinitionComponent extends MarkupComponent<SecurityS
     }
 
     public static SecuritySchemeDefinitionComponent.Parameters parameters(String securitySchemeDefinitionName,
-                                                                          SecuritySchemeDefinition securitySchemeDefinition,
+                                                                          SecurityScheme securitySchemeDefinition,
                                                                           int titleLevel) {
         return new SecuritySchemeDefinitionComponent.Parameters(securitySchemeDefinitionName, securitySchemeDefinition, titleLevel);
     }
@@ -53,7 +52,7 @@ public class SecuritySchemeDefinitionComponent extends MarkupComponent<SecurityS
     @Override
     public MarkupDocBuilder apply(MarkupDocBuilder markupDocBuilder, Parameters params) {
         String securitySchemeDefinitionName = params.securitySchemeDefinitionName;
-        SecuritySchemeDefinition securitySchemeDefinition = params.securitySchemeDefinition;
+        SecurityScheme securitySchemeDefinition = params.securitySchemeDefinition;
         applySecurityDocumentExtension(new SecurityDocumentExtension.Context(Position.SECURITY_SCHEME_BEFORE, markupDocBuilder, securitySchemeDefinitionName, securitySchemeDefinition));
         markupDocBuilder.sectionTitleWithAnchorLevel(params.titleLevel, securitySchemeDefinitionName);
         applySecurityDocumentExtension(new SecurityDocumentExtension.Context(Position.SECURITY_SCHEME_BEGIN, markupDocBuilder, securitySchemeDefinitionName, securitySchemeDefinition));
@@ -67,20 +66,20 @@ public class SecuritySchemeDefinitionComponent extends MarkupComponent<SecurityS
         return markupDocBuilder;
     }
 
-    private MarkupDocBuilder buildSecurityScheme(MarkupDocBuilder markupDocBuilder, SecuritySchemeDefinition securityScheme) {
-        String type = securityScheme.getType();
+    private MarkupDocBuilder buildSecurityScheme(MarkupDocBuilder markupDocBuilder, SecurityScheme securityScheme) {
+        String type = securityScheme.getType().toString();
         MarkupDocBuilder paragraphBuilder = copyMarkupDocBuilder(markupDocBuilder);
 
         paragraphBuilder.italicText(labels.getLabel(TYPE)).textLine(COLON + type);
 
-        if (securityScheme instanceof ApiKeyAuthDefinition) {
-            paragraphBuilder.italicText(labels.getLabel(NAME)).textLine(COLON + ((ApiKeyAuthDefinition) securityScheme).getName());
-            paragraphBuilder.italicText(labels.getLabel(IN)).textLine(COLON + ((ApiKeyAuthDefinition) securityScheme).getIn());
+        if (securityScheme.getType().equals(SecurityScheme.Type.APIKEY)) {
+            paragraphBuilder.italicText(labels.getLabel(NAME)).textLine(COLON + securityScheme.getName());
+            paragraphBuilder.italicText(labels.getLabel(IN)).textLine(COLON + securityScheme.getIn());
 
             return markupDocBuilder.paragraph(paragraphBuilder.toString(), true);
-        } else if (securityScheme instanceof OAuth2Definition) {
-            OAuth2Definition oauth2Scheme = (OAuth2Definition) securityScheme;
-            String flow = oauth2Scheme.getFlow();
+        } else if (securityScheme.getType().equals(SecurityScheme.Type.OAUTH2)) {
+            final OAuthFlow oauth2Scheme = securityScheme.getFlows().getAuthorizationCode();
+            String flow = securityScheme.getName();
             paragraphBuilder.italicText(labels.getLabel(FLOW)).textLine(COLON + flow);
             if (isNotBlank(oauth2Scheme.getAuthorizationUrl())) {
                 paragraphBuilder.italicText(labels.getLabel(AUTHORIZATION_URL)).textLine(COLON + oauth2Scheme.getAuthorizationUrl());
@@ -127,11 +126,11 @@ public class SecuritySchemeDefinitionComponent extends MarkupComponent<SecurityS
 
     public static class Parameters {
         private final String securitySchemeDefinitionName;
-        private final SecuritySchemeDefinition securitySchemeDefinition;
+        private final SecurityScheme securitySchemeDefinition;
         private final int titleLevel;
 
         public Parameters(String securitySchemeDefinitionName,
-                          SecuritySchemeDefinition securitySchemeDefinition,
+                          SecurityScheme securitySchemeDefinition,
                           int titleLevel) {
             this.securitySchemeDefinitionName = Validate.notBlank(securitySchemeDefinitionName, "SecuritySchemeDefinitionName must not be empty");
             this.securitySchemeDefinition = Validate.notNull(securitySchemeDefinition, "SecuritySchemeDefinition must not be null");

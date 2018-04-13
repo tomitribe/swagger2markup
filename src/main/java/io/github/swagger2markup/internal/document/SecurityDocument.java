@@ -19,7 +19,7 @@ import io.github.swagger2markup.Swagger2MarkupConverter;
 import io.github.swagger2markup.internal.component.SecuritySchemeDefinitionComponent;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.spi.MarkupComponent;
-import io.swagger.models.auth.SecuritySchemeDefinition;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.apache.commons.collections4.MapUtils;
 
 import java.util.Map;
@@ -42,7 +42,7 @@ public class SecurityDocument extends MarkupComponent<SecurityDocument.Parameter
         this.securitySchemeDefinitionComponent = new SecuritySchemeDefinitionComponent(context);
     }
 
-    public static SecurityDocument.Parameters parameters(Map<String, SecuritySchemeDefinition> securitySchemeDefinitions) {
+    public static SecurityDocument.Parameters parameters(Map<String, SecurityScheme> securitySchemeDefinitions) {
         return new SecurityDocument.Parameters(securitySchemeDefinitions);
     }
 
@@ -53,7 +53,7 @@ public class SecurityDocument extends MarkupComponent<SecurityDocument.Parameter
      */
     @Override
     public MarkupDocBuilder apply(MarkupDocBuilder markupDocBuilder, SecurityDocument.Parameters params) {
-        Map<String, SecuritySchemeDefinition> definitions = params.securitySchemeDefinitions;
+        Map<String, SecurityScheme> definitions = params.securitySchemeDefinitions;
         if (MapUtils.isNotEmpty(definitions)) {
             applySecurityDocumentExtension(new Context(Position.DOCUMENT_BEFORE, markupDocBuilder));
             buildSecurityTitle(markupDocBuilder, labels.getLabel(SECURITY));
@@ -69,9 +69,9 @@ public class SecurityDocument extends MarkupComponent<SecurityDocument.Parameter
         markupDocBuilder.sectionTitleWithAnchorLevel1(title, SECURITY_ANCHOR);
     }
 
-    private void buildSecuritySchemeDefinitionsSection(MarkupDocBuilder markupDocBuilder, Map<String, SecuritySchemeDefinition> securitySchemes) {
-        Map<String, SecuritySchemeDefinition> securitySchemeNames = toSortedMap(securitySchemes, null); // TODO : provide a dedicated ordering configuration for security schemes
-        securitySchemeNames.forEach((String securitySchemeName, SecuritySchemeDefinition securityScheme) ->
+    private void buildSecuritySchemeDefinitionsSection(MarkupDocBuilder markupDocBuilder, Map<String, SecurityScheme> securitySchemes) {
+        Map<String, SecurityScheme> securitySchemeNames = toSortedMap(securitySchemes, null); // TODO : provide a dedicated ordering configuration for security schemes
+        securitySchemeNames.forEach((String securitySchemeName, SecurityScheme securityScheme) ->
                 securitySchemeDefinitionComponent.apply(markupDocBuilder, SecuritySchemeDefinitionComponent.parameters(
                         securitySchemeName, securityScheme, 2
                 )));
@@ -87,9 +87,9 @@ public class SecurityDocument extends MarkupComponent<SecurityDocument.Parameter
     }
 
     public static class Parameters {
-        private final Map<String, SecuritySchemeDefinition> securitySchemeDefinitions;
+        private final Map<String, SecurityScheme> securitySchemeDefinitions;
 
-        public Parameters(Map<String, SecuritySchemeDefinition> securitySchemeDefinitions) {
+        public Parameters(Map<String, SecurityScheme> securitySchemeDefinitions) {
             this.securitySchemeDefinitions = securitySchemeDefinitions;
         }
     }
