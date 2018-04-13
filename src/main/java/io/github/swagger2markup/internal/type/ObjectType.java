@@ -18,6 +18,7 @@ package io.github.swagger2markup.internal.type;
 
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.swagger.models.properties.Property;
+import io.swagger.v3.oas.models.media.Schema;
 
 import java.util.Map;
 
@@ -26,16 +27,16 @@ import java.util.Map;
  */
 public class ObjectType extends Type {
 
-    private Map<String, Property> properties;
+    private Map<String, Schema> properties;
     private ObjectTypePolymorphism polymorphism;
 
-    public ObjectType(String name, ObjectTypePolymorphism polymorphism, Map<String, Property> properties) {
+    public ObjectType(String name, ObjectTypePolymorphism polymorphism, Map<String, Schema> properties) {
         super(name);
         this.polymorphism = polymorphism;
         this.properties = properties;
     }
 
-    public ObjectType(String name, Map<String, Property> properties) {
+    public ObjectType(String name, Map<String, Schema> properties) {
         this(name, new ObjectTypePolymorphism(ObjectTypePolymorphism.Nature.NONE, null), properties);
     }
 
@@ -52,11 +53,11 @@ public class ObjectType extends Type {
         this.polymorphism = polymorphism;
     }
 
-    public Map<String, Property> getProperties() {
+    public Map<String, Schema> getProperties() {
         return properties;
     }
 
-    public void setProperties(Map<String, Property> properties) {
+    public void setProperties(Map<String, Schema> properties) {
         this.properties = properties;
     }
 }

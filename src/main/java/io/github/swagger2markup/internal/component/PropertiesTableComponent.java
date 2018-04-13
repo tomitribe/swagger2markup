@@ -27,6 +27,7 @@ import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.spi.MarkupComponent;
 import io.swagger.models.properties.Property;
 import io.swagger.util.Json;
+import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -63,7 +64,7 @@ public class PropertiesTableComponent extends MarkupComponent<PropertiesTableCom
         this.tableComponent = new TableComponent(context);
     }
 
-    public static PropertiesTableComponent.Parameters parameters(Map<String, Property> properties,
+    public static PropertiesTableComponent.Parameters parameters(Map<String, Schema> properties,
       String parameterName,
       List<ObjectType> inlineDefinitions) {
         return new PropertiesTableComponent.Parameters(properties, parameterName, inlineDefinitions);
@@ -82,10 +83,10 @@ public class PropertiesTableComponent extends MarkupComponent<PropertiesTableCom
           .putMetaData(TableComponent.WIDTH_RATIO, "4")
           .putMetaData(TableComponent.HEADER_COLUMN, "true");
 
-        Map<String, Property> properties = params.properties;
+        Map<String, Schema> properties = params.properties;
         if (MapUtils.isNotEmpty(properties)) {
-            Map<String, Property> sortedProperties = toSortedMap(properties, config.getPropertyOrdering());
-            sortedProperties.forEach((String propertyName, Property property) -> {
+            Map<String, Schema> sortedProperties = toSortedMap(properties, config.getPropertyOrdering());
+            sortedProperties.forEach((String propertyName, Schema property) -> {
                 PropertyAdapter propertyAdapter = new PropertyAdapter(property);
                 Type propertyType = propertyAdapter.getType(definitionDocumentResolver);
 
@@ -106,7 +107,7 @@ public class PropertiesTableComponent extends MarkupComponent<PropertiesTableCom
 
                 MarkupDocBuilder propertyNameContent = copyMarkupDocBuilder(markupDocBuilder);
                 propertyNameContent.boldTextLine(propertyName, true);
-                if (property.getRequired())
+                if (property.getRequired() != null && !property.getRequired().isEmpty())
                     propertyNameContent.italicText(labels.getLabel(FLAGS_REQUIRED).toLowerCase());
                 else
                     propertyNameContent.italicText(labels.getLabel(FLAGS_OPTIONAL).toLowerCase());
@@ -220,11 +221,11 @@ public class PropertiesTableComponent extends MarkupComponent<PropertiesTableCom
     }
 
     public static class Parameters {
-        private final Map<String, Property> properties;
+        private final Map<String, Schema> properties;
         private final String parameterName;
         private final List<ObjectType> inlineDefinitions;
 
-        public Parameters(Map<String, Property> properties,
+        public Parameters(Map<String, Schema> properties,
           String parameterName,
           List<ObjectType> inlineDefinitions) {
 

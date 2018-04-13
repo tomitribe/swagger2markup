@@ -105,8 +105,8 @@ public class ResponseComponent extends MarkupComponent<ResponseComponent.Paramet
                     descriptionBuilder.newLine(true).boldText(labels.getLabel(HEADERS_COLUMN)).text(COLON);
                     for (Map.Entry<String, Header> header : headers.entrySet()) {
                         descriptionBuilder.newLine(true);
-                        Property headerProperty = header.getValue();
-                        PropertyAdapter headerPropertyAdapter = new PropertyAdapter(headerProperty);
+                        Header headerProperty = header.getValue();
+                        PropertyAdapter headerPropertyAdapter = new PropertyAdapter(headerProperty.getSchema());
                         Type propertyType = headerPropertyAdapter.getType(definitionDocumentResolver);
                         String headerDescription = markupDescription(config.getSwaggerMarkupLanguage(), markupDocBuilder, headerProperty.getDescription());
                         Optional<Object> optionalDefaultValue = headerPropertyAdapter.getDefaultValue();

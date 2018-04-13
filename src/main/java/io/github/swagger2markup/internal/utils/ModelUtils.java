@@ -18,10 +18,17 @@ package io.github.swagger2markup.internal.utils;
 import com.google.common.collect.ImmutableMap;
 import io.github.swagger2markup.internal.adapter.PropertyAdapter;
 import io.github.swagger2markup.internal.resolver.DocumentResolver;
-import io.github.swagger2markup.internal.type.*;
-import io.swagger.models.*;
+import io.github.swagger2markup.internal.type.ArrayType;
+import io.github.swagger2markup.internal.type.BasicType;
+import io.github.swagger2markup.internal.type.EnumType;
+import io.github.swagger2markup.internal.type.MapType;
+import io.github.swagger2markup.internal.type.ObjectType;
+import io.github.swagger2markup.internal.type.ObjectTypePolymorphism;
+import io.github.swagger2markup.internal.type.RefType;
+import io.github.swagger2markup.internal.type.Type;
+import io.swagger.models.ModelImpl;
 import io.swagger.models.properties.Property;
-import io.swagger.models.refs.RefFormat;
+import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.lang3.Validate;
@@ -58,26 +65,9 @@ public final class ModelUtils {
      */
     public static Type getType(Schema model, Map<String, Schema> definitions, DocumentResolver definitionDocumentResolver) {
         Validate.notNull(model, "model must not be null!");
-        if (model instanceof ModelImpl) {
-            ModelImpl modelImpl = (ModelImpl) model;
-
-            if (modelImpl.getAdditionalProperties() != null)
-                return new MapType(modelImpl.getTitle(), new PropertyAdapter(modelImpl.getAdditionalProperties()).getType(definitionDocumentResolver));
-            else if (modelImpl.getEnum() != null)
-                return new EnumType(modelImpl.getTitle(), modelImpl.getEnum());
-            else if (modelImpl.getProperties() != null) {
-                ObjectType objectType = new ObjectType(modelImpl.getTitle(), model.getProperties());
-
-                objectType.getPolymorphism().setDiscriminator(modelImpl.getDiscriminator());
-
-                return objectType;
-            } else if (isNotBlank(modelImpl.getFormat()))
-                return new BasicType(modelImpl.getType(), modelImpl.getTitle(), modelImpl.getFormat());
-            else
-                return new BasicType(modelImpl.getType(), modelImpl.getTitle());
-        } else if (model instanceof ComposedSchema) {
+        if (model instanceof ComposedSchema) {
             ComposedSchema composedModel = (ComposedSchema) model;
-            Map<String, Property> allProperties = new LinkedHashMap<>();
+            Map<String, Schema> allProperties = new LinkedHashMap<>();
             ObjectTypePolymorphism polymorphism = new ObjectTypePolymorphism(ObjectTypePolymorphism.Nature.NONE, null);
             String name = model.getTitle();
 
@@ -96,7 +86,7 @@ public final class ModelUtils {
                             polymorphism.setDiscriminator(innerModelDiscriminator);
                         }
 
-                        Map<String, Property> innerModelProperties = ((ObjectType) innerModelType).getProperties();
+                        Map<String, Schema> innerModelProperties = ((ObjectType) innerModelType).getProperties();
                         if (innerModelProperties != null)
                             allProperties.putAll(ImmutableMap.copyOf(innerModelProperties));
                     }
@@ -104,9 +94,8 @@ public final class ModelUtils {
             }
 
             return new ObjectType(name, polymorphism, allProperties);
-        } else if (model instanceof RefModel) {
-            RefModel refModel = (RefModel) model;
-            String refName = refModel.getRefFormat().equals(RefFormat.INTERNAL) ? refModel.getSimpleRef() : refModel.getReference();
+        } else if (model.get$ref() != null) {
+            String refName = model.get$ref();
 
             Type refType = new ObjectType(refName, null);
             if (definitions.containsKey(refName)) {
@@ -116,12 +105,27 @@ public final class ModelUtils {
             }
 
             return new RefType(definitionDocumentResolver.apply(refName), refType);
-        } else if (model instanceof ArrayModel) {
-            ArrayModel arrayModel = ((ArrayModel) model);
+        } else if (model instanceof ArraySchema) {
+            ArraySchema arrayModel = ((ArraySchema) model);
 
             return new ArrayType(null, new PropertyAdapter(arrayModel.getItems()).getType(definitionDocumentResolver));
-        }
+        } else {
+            Schema modelImpl = model;
 
-        return null;
+            if (modelImpl.getAdditionalProperties() != null)
+                return new MapType(modelImpl.getTitle(), new PropertyAdapter((Schema) modelImpl.getAdditionalProperties()).getType(definitionDocumentResolver));
+            else if (modelImpl.getEnum() != null)
+                return new EnumType(modelImpl.getTitle(), modelImpl.getEnum());
+            else if (modelImpl.getProperties() != null) {
+                ObjectType objectType = new ObjectType(modelImpl.getTitle(), model.getProperties());
+
+                objectType.getPolymorphism().setDiscriminator(modelImpl.getDiscriminator().getPropertyName());
+
+                return objectType;
+            } else if (isNotBlank(modelImpl.getFormat()))
+                return new BasicType(modelImpl.getType(), modelImpl.getTitle(), modelImpl.getFormat());
+            else
+                return new BasicType(modelImpl.getType(), modelImpl.getTitle());
+        }
     }
 }

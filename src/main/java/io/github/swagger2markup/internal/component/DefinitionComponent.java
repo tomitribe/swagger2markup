@@ -159,7 +159,7 @@ public class DefinitionComponent extends MarkupComponent<DefinitionComponent.Par
             if (isNotBlank(typeInfosString))
                 markupDocBuilder.paragraph(typeInfosString, true);
 
-            Map<String, Property> properties = ((ObjectType) modelType).getProperties();
+            Map<String, Schema> properties = ((ObjectType) modelType).getProperties();
             if (!properties.isEmpty()) {
                 propertiesTableComponent.apply(markupDocBuilder,
                         PropertiesTableComponent.parameters(

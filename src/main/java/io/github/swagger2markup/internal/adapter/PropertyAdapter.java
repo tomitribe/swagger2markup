@@ -16,10 +16,34 @@
 package io.github.swagger2markup.internal.adapter;
 
 import io.github.swagger2markup.internal.resolver.DocumentResolver;
-import io.github.swagger2markup.internal.type.*;
+import io.github.swagger2markup.internal.type.ArrayType;
+import io.github.swagger2markup.internal.type.BasicType;
+import io.github.swagger2markup.internal.type.EnumType;
+import io.github.swagger2markup.internal.type.MapType;
+import io.github.swagger2markup.internal.type.ObjectType;
+import io.github.swagger2markup.internal.type.RefType;
+import io.github.swagger2markup.internal.type.Type;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
-import io.swagger.models.properties.*;
+import io.swagger.models.properties.AbstractNumericProperty;
+import io.swagger.models.properties.ArrayProperty;
+import io.swagger.models.properties.BaseIntegerProperty;
+import io.swagger.models.properties.BooleanProperty;
+import io.swagger.models.properties.DoubleProperty;
+import io.swagger.models.properties.FloatProperty;
+import io.swagger.models.properties.IntegerProperty;
+import io.swagger.models.properties.LongProperty;
+import io.swagger.models.properties.MapProperty;
+import io.swagger.models.properties.ObjectProperty;
+import io.swagger.models.properties.Property;
+import io.swagger.models.properties.RefProperty;
+import io.swagger.models.properties.StringProperty;
+import io.swagger.models.properties.UUIDProperty;
 import io.swagger.models.refs.RefFormat;
+import io.swagger.v3.core.util.Json;
+import io.swagger.v3.oas.models.media.ArraySchema;
+import io.swagger.v3.oas.models.media.BooleanSchema;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.StringSchema;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.Validate;
@@ -27,16 +51,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public final class PropertyAdapter {
 
-    private final Property property;
+    private final Schema property;
     private static Logger logger = LoggerFactory.getLogger(PropertyAdapter.class);
 
-    public PropertyAdapter(Property property) {
+    public PropertyAdapter(Schema property) {
         Validate.notNull(property, "property must not be null");
         this.property = property;
     }
@@ -48,7 +76,7 @@ public final class PropertyAdapter {
      * @param markupDocBuilder doc builder
      * @return a generated example for the property
      */
-    public static Object generateExample(Property property, MarkupDocBuilder markupDocBuilder) {
+    public static Object generateExample(Schema property, MarkupDocBuilder markupDocBuilder) {
 
         switch (property.getType()) {
             case "integer":
@@ -60,16 +88,10 @@ public final class PropertyAdapter {
             case "string":
                 return "string";
             case "ref":
-                if (property instanceof RefProperty) {
-                    if (logger.isDebugEnabled()) logger.debug("generateExample RefProperty for " + property.getName());
-                    return markupDocBuilder.copy(false).crossReference(((RefProperty) property).getSimpleRef()).toString();
-                } else {
-                    if (logger.isDebugEnabled()) logger.debug("generateExample for ref not RefProperty");
-                }
+                if (logger.isDebugEnabled()) { logger.debug("generateExample RefProperty for " + property.getName()); }
+                return markupDocBuilder.copy(false).crossReference(property.get$ref()).toString();
             case "array":
-                if (property instanceof ArrayProperty) {
-                    return generateArrayExample((ArrayProperty) property, markupDocBuilder);
-                }
+                return generateArrayExample(Json.mapper().convertValue(property, ArraySchema.class), markupDocBuilder);
             default:
                 return property.getType();
         }
@@ -82,8 +104,8 @@ public final class PropertyAdapter {
      * @param markupDocBuilder MarkupDocBuilder containing all associated settings
      * @return String example
      */
-    private static Object generateArrayExample(ArrayProperty property, MarkupDocBuilder markupDocBuilder) {
-        Property itemProperty = property.getItems();
+    private static Object generateArrayExample(ArraySchema property, MarkupDocBuilder markupDocBuilder) {
+        Schema itemProperty = property.getItems();
         List<Object> exampleArray = new ArrayList<>();
 
         exampleArray.add(generateExample(itemProperty, markupDocBuilder));
@@ -127,13 +149,13 @@ public final class PropertyAdapter {
      * @return the type of the property
      */
     public Type getType(DocumentResolver definitionDocumentResolver) {
-        Type type;
-        if (property instanceof RefProperty) {
+        Type type = null;
+/*        if (property instanceof RefProperty) {
             RefProperty refProperty = (RefProperty) property;
             if (refProperty.getRefFormat() == RefFormat.RELATIVE)
                 type = new ObjectType(refProperty.getTitle(), null); // FIXME : Workaround for https://github.com/swagger-api/swagger-parser/issues/177
             else
-                type = new RefType(definitionDocumentResolver.apply(refProperty.getSimpleRef()), new ObjectType(refProperty.getSimpleRef(), null /* FIXME, not used for now */));
+                type = new RefType(definitionDocumentResolver.apply(refProperty.getSimpleRef()), new ObjectType(refProperty.getSimpleRef(), null  FIXME, not used for now ));
         } else if (property instanceof ArrayProperty) {
             ArrayProperty arrayProperty = (ArrayProperty) property;
             Property items = arrayProperty.getItems();
@@ -166,7 +188,7 @@ public final class PropertyAdapter {
             } else {
                 type = new BasicType(property.getType(), property.getTitle());
             }
-        }
+        }*/
         return type;
     }
 
@@ -176,29 +198,7 @@ public final class PropertyAdapter {
      * @return the default value of the property
      */
     public Optional<Object> getDefaultValue() {
-        if (property instanceof BooleanProperty) {
-            BooleanProperty booleanProperty = (BooleanProperty) property;
-            return Optional.ofNullable(booleanProperty.getDefault());
-        } else if (property instanceof StringProperty) {
-            StringProperty stringProperty = (StringProperty) property;
-            return Optional.ofNullable(stringProperty.getDefault());
-        } else if (property instanceof DoubleProperty) {
-            DoubleProperty doubleProperty = (DoubleProperty) property;
-            return Optional.ofNullable(doubleProperty.getDefault());
-        } else if (property instanceof FloatProperty) {
-            FloatProperty floatProperty = (FloatProperty) property;
-            return Optional.ofNullable(floatProperty.getDefault());
-        } else if (property instanceof IntegerProperty) {
-            IntegerProperty integerProperty = (IntegerProperty) property;
-            return Optional.ofNullable(integerProperty.getDefault());
-        } else if (property instanceof LongProperty) {
-            LongProperty longProperty = (LongProperty) property;
-            return Optional.ofNullable(longProperty.getDefault());
-        } else if (property instanceof UUIDProperty) {
-            UUIDProperty uuidProperty = (UUIDProperty) property;
-            return Optional.ofNullable(uuidProperty.getDefault());
-        }
-        return Optional.empty();
+        return Optional.ofNullable(property.getDefault());
     }
 
     /**
@@ -207,14 +207,7 @@ public final class PropertyAdapter {
      * @return the minLength of the property
      */
     public Optional<Integer> getMinlength() {
-        if (property instanceof StringProperty) {
-            StringProperty stringProperty = (StringProperty) property;
-            return Optional.ofNullable(stringProperty.getMinLength());
-        } else if (property instanceof UUIDProperty) {
-            UUIDProperty uuidProperty = (UUIDProperty) property;
-            return Optional.ofNullable(uuidProperty.getMinLength());
-        }
-        return Optional.empty();
+        return Optional.ofNullable(property.getMinLength());
     }
 
     /**
@@ -223,14 +216,7 @@ public final class PropertyAdapter {
      * @return the maxLength of the property
      */
     public Optional<Integer> getMaxlength() {
-        if (property instanceof StringProperty) {
-            StringProperty stringProperty = (StringProperty) property;
-            return Optional.ofNullable(stringProperty.getMaxLength());
-        } else if (property instanceof UUIDProperty) {
-            UUIDProperty uuidProperty = (UUIDProperty) property;
-            return Optional.ofNullable(uuidProperty.getMaxLength());
-        }
-        return Optional.empty();
+        return Optional.ofNullable(property.getMaxLength());
     }
 
     /**
@@ -239,14 +225,7 @@ public final class PropertyAdapter {
      * @return the pattern of the property
      */
     public Optional<String> getPattern() {
-        if (property instanceof StringProperty) {
-            StringProperty stringProperty = (StringProperty) property;
-            return Optional.ofNullable(stringProperty.getPattern());
-        } else if (property instanceof UUIDProperty) {
-            UUIDProperty uuidProperty = (UUIDProperty) property;
-            return Optional.ofNullable(uuidProperty.getPattern());
-        }
-        return Optional.empty();
+        return Optional.ofNullable(property.getPattern());
     }
 
     /**
@@ -255,14 +234,7 @@ public final class PropertyAdapter {
      * @return the minimum value of the property
      */
     public Optional<BigDecimal> getMin() {
-        if (property instanceof BaseIntegerProperty) {
-            BaseIntegerProperty integerProperty = (BaseIntegerProperty) property;
-            return Optional.ofNullable(integerProperty.getMinimum() != null ? integerProperty.getMinimum() : null);
-        } else if (property instanceof AbstractNumericProperty) {
-            AbstractNumericProperty numericProperty = (AbstractNumericProperty) property;
-            return Optional.ofNullable(numericProperty.getMinimum());
-        }
-        return Optional.empty();
+        return Optional.ofNullable(property.getMinimum());
     }
 
     /**
@@ -271,11 +243,7 @@ public final class PropertyAdapter {
      * @return the exclusiveMinimum value of the property
      */
     public boolean getExclusiveMin() {
-        if (property instanceof AbstractNumericProperty) {
-            AbstractNumericProperty numericProperty = (AbstractNumericProperty) property;
-            return BooleanUtils.isTrue(numericProperty.getExclusiveMinimum());
-        }
-        return false;
+        return property.getExclusiveMinimum();
     }
 
     /**
@@ -284,14 +252,7 @@ public final class PropertyAdapter {
      * @return the minimum value of the property
      */
     public Optional<BigDecimal> getMax() {
-        if (property instanceof BaseIntegerProperty) {
-            BaseIntegerProperty integerProperty = (BaseIntegerProperty) property;
-            return Optional.ofNullable(integerProperty.getMaximum() != null ? integerProperty.getMaximum() : null);
-        } else if (property instanceof AbstractNumericProperty) {
-            AbstractNumericProperty numericProperty = (AbstractNumericProperty) property;
-            return Optional.ofNullable(numericProperty.getMaximum());
-        }
-        return Optional.empty();
+        return Optional.ofNullable(property.getMaximum());
     }
 
     /**
@@ -300,11 +261,7 @@ public final class PropertyAdapter {
      * @return the exclusiveMaximum value of the property
      */
     public boolean getExclusiveMax() {
-        if (property instanceof AbstractNumericProperty) {
-            AbstractNumericProperty numericProperty = (AbstractNumericProperty) property;
-            return BooleanUtils.isTrue((numericProperty.getExclusiveMaximum()));
-        }
-        return false;
+        return property.getExclusiveMaximum();
     }
 
     /**
@@ -315,6 +272,7 @@ public final class PropertyAdapter {
      * @return property example display string
      */
     public Optional<Object> getExample(boolean generateMissingExamples, MarkupDocBuilder markupDocBuilder) {
+        /*
         if (property.getExample() != null) {
             return Optional.ofNullable(property.getExample());
         } else if (property instanceof MapProperty) {
@@ -336,8 +294,9 @@ public final class PropertyAdapter {
         } else if (generateMissingExamples) {
             return Optional.of(generateExample(property, markupDocBuilder));
         }
+        */
 
-        return Optional.empty();
+        return Optional.ofNullable(property.getExample());
     }
 
     /**
