@@ -29,6 +29,8 @@ import io.github.swagger2markup.spi.PathsDocumentExtension;
 import io.swagger.models.properties.Property;
 import io.swagger.util.Json;
 import io.swagger.v3.oas.models.headers.Header;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.Validate;
@@ -36,6 +38,8 @@ import org.apache.commons.lang3.Validate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ch.netzwerg.paleo.ColumnIds.StringColumnId;
 import static io.github.swagger2markup.Labels.*;
@@ -107,27 +111,37 @@ public class ResponseComponent extends MarkupComponent<ResponseComponent.Paramet
                         descriptionBuilder.newLine(true);
                         Header headerProperty = header.getValue();
                         String headerDescription = markupDescription(config.getSwaggerMarkupLanguage(), markupDocBuilder, headerProperty.getDescription());
+
+                        Schema headerSchema;
                         if (headerProperty.getSchema() != null) {
-                            PropertyAdapter headerPropertyAdapter = new PropertyAdapter(headerProperty.getSchema());
-                            Type propertyType = headerPropertyAdapter.getType(definitionDocumentResolver);
-                            Optional<Object> optionalDefaultValue = headerPropertyAdapter.getDefaultValue();
+                            headerSchema = headerProperty.getSchema();
+                        } else {
+                            headerSchema = new StringSchema();
+                            headerSchema.setName(header.getKey());
+                            headerSchema.setDescription(headerProperty.getDescription());
+                            headerSchema.setRequired(Stream.of(header.getKey()).collect(Collectors.toList()));
+                            headerSchema.setDeprecated(headerProperty.getDeprecated());
+                        }
 
-                            descriptionBuilder
-                                    .literalText(header.getKey())
-                                    .text(String.format(" (%s)", propertyType.displaySchema(markupDocBuilder)));
+                        PropertyAdapter headerPropertyAdapter = new PropertyAdapter(headerSchema);
+                        Type propertyType = headerPropertyAdapter.getType(definitionDocumentResolver);
+                        Optional<Object> optionalDefaultValue = headerPropertyAdapter.getDefaultValue();
 
-                            if (isNotBlank(headerDescription) || optionalDefaultValue.isPresent()) {
-                                descriptionBuilder.text(COLON);
+                        descriptionBuilder
+                                .literalText(header.getKey())
+                                .text(String.format(" (%s)", propertyType.displaySchema(markupDocBuilder)));
 
-                                if (isNotBlank(headerDescription) && !headerDescription.endsWith("."))
-                                    headerDescription += ".";
+                        if (isNotBlank(headerDescription) || optionalDefaultValue.isPresent()) {
+                            descriptionBuilder.text(COLON);
 
-                                descriptionBuilder.text(headerDescription);
+                            if (isNotBlank(headerDescription) && !headerDescription.endsWith("."))
+                                headerDescription += ".";
 
-                                optionalDefaultValue.ifPresent(o -> descriptionBuilder.text(" ")
-                                                                                      .boldText(labels.getLabel(DEFAULT_COLUMN))
-                                                                                      .text(COLON).literalText(Json.pretty(o)));
-                            }
+                            descriptionBuilder.text(headerDescription);
+
+                            optionalDefaultValue.ifPresent(o -> descriptionBuilder.text(" ")
+                                                                                  .boldText(labels.getLabel(DEFAULT_COLUMN))
+                                                                                  .text(COLON).literalText(Json.pretty(o)));
                         }
                     }
                 }
