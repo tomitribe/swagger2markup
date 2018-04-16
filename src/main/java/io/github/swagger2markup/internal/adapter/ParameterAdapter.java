@@ -201,7 +201,7 @@ public class ParameterAdapter {
     public Optional<Object> getDefaultValue() {
         Validate.notNull(parameter, "parameter must not be null!");
         if (parameter.get$ref() == null) {
-            return Optional.ofNullable(parameter);
+            return Optional.ofNullable(parameter.getSchema()).map(Schema::getDefault);
         }
         return Optional.empty();
     }
