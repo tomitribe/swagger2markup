@@ -5,7 +5,7 @@
 |===
 |Type|Name|Description|Schema
 |**Body**|**body** +
-__optional__|Pet object that needs to be added to the store|<<_pet,Pet>>
+__optional__|Pet object that needs to be added to the store|<<_petbody,PetBody>>
 |===
 
 
