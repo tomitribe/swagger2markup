@@ -169,7 +169,8 @@ public class PathsDocument extends MarkupComponent<PathsDocument.Parameters> {
      */
     private String getBasePath() {
         if (config.isBasePathPrefixEnabled()) {
-            return StringUtils.defaultString("TODO - radcortez - context.getSwagger().getBasePath()");
+            // TODO - Apparently no base path in OpenAPI.
+            return StringUtils.defaultString("");
         }
         return "";
     }
