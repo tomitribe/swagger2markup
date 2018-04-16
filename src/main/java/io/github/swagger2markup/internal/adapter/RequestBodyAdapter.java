@@ -84,7 +84,7 @@ public class RequestBodyAdapter {
         return inlineDefinitions;
     }
 
-    private Type getType(DocumentResolver definitionDocumentResolver) {
+    public Type getType(DocumentResolver definitionDocumentResolver) {
         if (schema.get$ref() != null) {
             String refName = RefUtils.computeSimpleRef(schema.get$ref());
             return type = new RefType(definitionDocumentResolver.apply(refName), new ObjectType(refName, null));
