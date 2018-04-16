@@ -59,32 +59,35 @@ public class ExamplesUtil {
         if (responses != null)
             for (Map.Entry<String, ApiResponse> responseEntry : responses.entrySet()) {
                 ApiResponse response = responseEntry.getValue();
-                final Optional<MediaType> mediaTypeOptional =
-                        Optional.ofNullable(response.getContent())
-                                .flatMap(content -> content.values().stream().findFirst());
+                if (response.getContent() == null || response.getContent().isEmpty()) {
+                    continue;
+                }
 
-                Object example = null;
-                if (mediaTypeOptional.isPresent()) {
-                    final MediaType mediaType = mediaTypeOptional.get();
-                    example = mediaType.getExample();
+                final Schema schema = response.getContent()
+                                              .values()
+                                              .stream()
+                                              .findFirst()
+                                              .map(MediaType::getSchema)
+                                              .orElseThrow(IllegalArgumentException::new);
 
-                        /*
-                        if (example == null && schema instanceof RefProperty) {
-                            String simpleRef = ((RefProperty) schema).getSimpleRef();
-                            example = generateExampleForRefModel(generateMissingExamples, simpleRef, definitions, definitionDocumentResolver, markupDocBuilder, new HashMap<>());
-                        }
-                        if (example == null && schema instanceof ArrayProperty && generateMissingExamples) {
-                            example = generateExampleForArrayProperty((ArrayProperty) schema, definitions, definitionDocumentResolver, markupDocBuilder, new HashMap<>());
-                        }
-                        if (example == null && generateMissingExamples) {
-                            example = PropertyAdapter.generateExample(schema, markupDocBuilder);
-                        }
-                        */
+                Object example = schema.getExample();
+                if (example == null) {
+                    if (schema.get$ref() != null) {
+                        String simpleRef = RefUtils.computeSimpleRef(schema.get$ref());
+                        example = generateExampleForRefModel(generateMissingExamples, simpleRef, definitions, definitionDocumentResolver, markupDocBuilder, new HashMap<>());
+                    }
+
+                    if (example == null && schema instanceof ArraySchema && generateMissingExamples) {
+                        example = generateExampleForArrayProperty((ArraySchema) schema, definitions, definitionDocumentResolver, markupDocBuilder, new HashMap<>());
+                    }
+
+                    if (example == null && generateMissingExamples) {
+                        example = PropertyAdapter.generateExample(schema, markupDocBuilder);
+                    }
                 }
 
                 if (example != null)
                     examples.put(responseEntry.getKey(), example);
-
             }
 
         return examples;
@@ -243,7 +246,7 @@ public class ExamplesUtil {
                 Object exampleObject = property.getValue().getExample();
                 if (exampleObject == null) {
                     if (property.getValue().get$ref() != null) {
-                        exampleObject = generateExampleForRefModel(true, property.getValue().get$ref(), definitions, definitionDocumentResolver, markupDocBuilder, refStack);
+                        exampleObject = generateExampleForRefModel(true, RefUtils.computeSimpleRef(property.getValue().get$ref()), definitions, definitionDocumentResolver, markupDocBuilder, refStack);
                     } else if (property.getValue() instanceof ArraySchema) {
                         exampleObject = generateExampleForArrayProperty((ArraySchema) property.getValue(), definitions, definitionDocumentResolver, markupDocBuilder, refStack);
                     } else if (property.getValue() instanceof MapSchema) {
@@ -318,7 +321,7 @@ public class ExamplesUtil {
         } else if (property instanceof ArraySchema) {
             return new Object[]{generateExampleForArrayProperty((ArraySchema) property, definitions, definitionDocumentResolver, markupDocBuilder, refStack)};
         } else if (property.get$ref() != null) {
-            return new Object[]{generateExampleForRefModel(true, property.get$ref(), definitions, definitionDocumentResolver, markupDocBuilder, refStack)};
+            return new Object[]{generateExampleForRefModel(true, RefUtils.computeSimpleRef(property.get$ref()), definitions, definitionDocumentResolver, markupDocBuilder, refStack)};
         } else {
             return new Object[]{PropertyAdapter.generateExample(property, markupDocBuilder)};
         }
