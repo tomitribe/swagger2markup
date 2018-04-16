@@ -19,6 +19,7 @@ package io.github.swagger2markup.internal.component;
 import ch.netzwerg.paleo.StringColumn;
 import io.github.swagger2markup.Swagger2MarkupConverter;
 import io.github.swagger2markup.internal.adapter.ParameterAdapter;
+import io.github.swagger2markup.internal.adapter.RequestBodyAdapter;
 import io.github.swagger2markup.internal.resolver.DocumentResolver;
 import io.github.swagger2markup.internal.type.ObjectType;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
@@ -30,11 +31,20 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static ch.netzwerg.paleo.ColumnIds.StringColumnId;
-import static io.github.swagger2markup.Labels.*;
+import static io.github.swagger2markup.Labels.DEFAULT_COLUMN;
+import static io.github.swagger2markup.Labels.DESCRIPTION_COLUMN;
+import static io.github.swagger2markup.Labels.FLAGS_OPTIONAL;
+import static io.github.swagger2markup.Labels.FLAGS_REQUIRED;
+import static io.github.swagger2markup.Labels.NAME_COLUMN;
+import static io.github.swagger2markup.Labels.PARAMETERS;
+import static io.github.swagger2markup.Labels.SCHEMA_COLUMN;
+import static io.github.swagger2markup.Labels.TYPE_COLUMN;
 import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.copyMarkupDocBuilder;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -62,10 +72,8 @@ public class ParameterTableComponent extends MarkupComponent<ParameterTableCompo
     public MarkupDocBuilder apply(MarkupDocBuilder markupDocBuilder, Parameters params) {
         PathOperation operation = params.operation;
         List<ObjectType> inlineDefinitions = params.inlineDefinitions;
-        List<Parameter> parameters = operation.getOperation().getParameters();
-        if (parameters == null) {
-            return markupDocBuilder;
-        }
+        List<Parameter> parameters =
+                Optional.ofNullable(operation.getOperation().getParameters()).orElse(new ArrayList<>());
 
         if (config.getParameterOrdering() != null)
             parameters.sort(config.getParameterOrdering());
@@ -76,7 +84,7 @@ public class ParameterTableComponent extends MarkupComponent<ParameterTableCompo
 
         MarkupDocBuilder parametersBuilder = copyMarkupDocBuilder(markupDocBuilder);
         applyPathsDocumentExtension(new PathsDocumentExtension.Context(PathsDocumentExtension.Position.OPERATION_PARAMETERS_BEGIN, parametersBuilder, operation));
-        if (CollectionUtils.isNotEmpty(filteredParameters)) {
+        if (CollectionUtils.isNotEmpty(filteredParameters) || operation.getOperation().getRequestBody() != null) {
             StringColumn.Builder typeColumnBuilder = StringColumn.builder(StringColumnId.of(labels.getLabel(TYPE_COLUMN)))
                     .putMetaData(TableComponent.WIDTH_RATIO, "2");
             StringColumn.Builder nameColumnBuilder = StringColumn.builder(StringColumnId.of(labels.getLabel(NAME_COLUMN)))
@@ -104,6 +112,19 @@ public class ParameterTableComponent extends MarkupComponent<ParameterTableCompo
                 defaultColumnBuilder.add(parameterAdapter.displayDefaultValue(markupDocBuilder));
             }
 
+            if (operation.getOperation().getRequestBody() != null) {
+                RequestBodyAdapter requestBodyAdapter =
+                        new RequestBodyAdapter(context, operation, operation.getOperation().getRequestBody(),
+                                               definitionDocumentResolver);
+                typeColumnBuilder.add(requestBodyAdapter.displayType(markupDocBuilder));
+                nameColumnBuilder.add(getParameterNameColumnContent(markupDocBuilder, requestBodyAdapter));
+                descriptionColumnBuilder.add(requestBodyAdapter.displayDescription(markupDocBuilder));
+                schemaColumnBuilder.add(requestBodyAdapter.displaySchema(markupDocBuilder));
+                defaultColumnBuilder.add(requestBodyAdapter.displayDefaultValue(markupDocBuilder));
+
+                inlineDefinitions.addAll(requestBodyAdapter.getInlineDefinitions());
+            }
+
             parametersBuilder = tableComponent.apply(parametersBuilder, TableComponent.parameters(
                     typeColumnBuilder.build(),
                     nameColumnBuilder.build(),
@@ -129,6 +150,17 @@ public class ParameterTableComponent extends MarkupComponent<ParameterTableCompo
 
         parameterNameContent.boldTextLine(parameter.getName(), true);
         if (parameter.getRequired())
+            parameterNameContent.italicText(labels.getLabel(FLAGS_REQUIRED).toLowerCase());
+        else
+            parameterNameContent.italicText(labels.getLabel(FLAGS_OPTIONAL).toLowerCase());
+        return parameterNameContent.toString();
+    }
+
+    private String getParameterNameColumnContent(MarkupDocBuilder markupDocBuilder, RequestBodyAdapter requestBody) {
+        MarkupDocBuilder parameterNameContent = copyMarkupDocBuilder(markupDocBuilder);
+
+        parameterNameContent.boldTextLine(requestBody.getName(), true);
+        if (requestBody.getRequired())
             parameterNameContent.italicText(labels.getLabel(FLAGS_REQUIRED).toLowerCase());
         else
             parameterNameContent.italicText(labels.getLabel(FLAGS_OPTIONAL).toLowerCase());
