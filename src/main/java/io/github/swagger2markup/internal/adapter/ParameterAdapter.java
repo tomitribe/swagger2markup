@@ -25,16 +25,14 @@ import io.github.swagger2markup.internal.type.ObjectType;
 import io.github.swagger2markup.internal.type.RefType;
 import io.github.swagger2markup.internal.type.Type;
 import io.github.swagger2markup.internal.utils.InlineSchemaUtils;
-import io.github.swagger2markup.internal.utils.ModelUtils;
+import io.github.swagger2markup.internal.utils.RefUtils;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.model.PathOperation;
-import io.swagger.models.Model;
 import io.swagger.models.parameters.AbstractSerializableParameter;
-import io.swagger.models.parameters.BodyParameter;
-import io.swagger.models.parameters.RefParameter;
 import io.swagger.util.Json;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.parameters.RequestBody;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.text.WordUtils;
@@ -43,10 +41,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.boldText;
 import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.literalText;
 import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.markupDescription;
+import static io.swagger.v3.parser.util.RefUtils.computeRefFormat;
 
 public class ParameterAdapter {
 
@@ -61,6 +63,20 @@ public class ParameterAdapter {
                             DocumentResolver definitionDocumentResolver) {
         Validate.notNull(parameter, "parameter must not be null");
         this.parameter = parameter;
+
+        if (parameter.get$ref() != null) {
+            Optional.ofNullable(context.getCache()
+                                       .loadRef(parameter.get$ref(), computeRefFormat(parameter.get$ref()),
+                                                Object.class))
+                    .filter(o -> o instanceof RequestBody)
+                    .map(o -> ((RequestBody) o))
+                    .ifPresent(body -> {
+                        parameter.setIn("Body");
+                        parameter.setName("body");
+                        parameter.setDescription(body.getDescription());
+                    });
+        }
+
         type = getType(definitionDocumentResolver);
         config = context.getConfig();
         if (config.isInlineSchemaEnabled()) {
@@ -124,7 +140,7 @@ public class ParameterAdapter {
     }
 
     public boolean getRequired() {
-        return parameter.getRequired();
+        return Optional.ofNullable(parameter.getRequired()).orElse(false);
     }
 
     public Map<String, Object> getVendorExtensions() {
@@ -154,7 +170,7 @@ public class ParameterAdapter {
         Type type;
 
         if (parameter.get$ref() != null) {
-            String refName = parameter.get$ref();
+            String refName = RefUtils.computeSimpleRef(parameter.get$ref());
 
             type = new RefType(definitionDocumentResolver.apply(refName), new ObjectType(refName, null));
         } else {
@@ -184,7 +200,9 @@ public class ParameterAdapter {
      */
     public Optional<Object> getDefaultValue() {
         Validate.notNull(parameter, "parameter must not be null!");
-        return Optional.ofNullable(parameter);
+        if (parameter.get$ref() == null) {
+            return Optional.ofNullable(parameter);
+        }
+        return Optional.empty();
     }
-
 }
