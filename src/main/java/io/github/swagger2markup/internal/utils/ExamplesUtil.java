@@ -16,17 +16,11 @@
 
 package io.github.swagger2markup.internal.utils;
 
-import io.github.swagger2markup.internal.adapter.ParameterAdapter;
 import io.github.swagger2markup.internal.adapter.PropertyAdapter;
 import io.github.swagger2markup.internal.resolver.DocumentResolver;
 import io.github.swagger2markup.internal.type.ObjectType;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.model.PathOperation;
-import io.swagger.models.ArrayModel;
-import io.swagger.models.properties.ArrayProperty;
-import io.swagger.models.properties.MapProperty;
-import io.swagger.models.properties.Property;
-import io.swagger.models.properties.RefProperty;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.ComposedSchema;
@@ -39,7 +33,6 @@ import io.swagger.v3.oas.models.parameters.QueryParameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -190,7 +183,7 @@ public class ExamplesUtil {
             }
 
             if (example != null)
-                examples.put(schema.getName(), example);
+                examples.put("body", example);
         }
 
         return examples;

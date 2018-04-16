@@ -24,25 +24,8 @@ import io.github.swagger2markup.internal.type.ObjectType;
 import io.github.swagger2markup.internal.type.RefType;
 import io.github.swagger2markup.internal.type.Type;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
-import io.swagger.models.properties.AbstractNumericProperty;
-import io.swagger.models.properties.ArrayProperty;
-import io.swagger.models.properties.BaseIntegerProperty;
-import io.swagger.models.properties.BooleanProperty;
-import io.swagger.models.properties.DoubleProperty;
-import io.swagger.models.properties.FloatProperty;
-import io.swagger.models.properties.IntegerProperty;
-import io.swagger.models.properties.LongProperty;
-import io.swagger.models.properties.MapProperty;
-import io.swagger.models.properties.ObjectProperty;
-import io.swagger.models.properties.Property;
-import io.swagger.models.properties.RefProperty;
-import io.swagger.models.properties.StringProperty;
-import io.swagger.models.properties.UUIDProperty;
-import io.swagger.models.refs.RefFormat;
 import io.swagger.v3.core.util.Json;
-import io.swagger.v3.core.util.RefUtils;
 import io.swagger.v3.oas.models.media.ArraySchema;
-import io.swagger.v3.oas.models.media.BooleanSchema;
 import io.swagger.v3.oas.models.media.MapSchema;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
@@ -53,7 +36,6 @@ import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -82,6 +64,10 @@ public final class PropertyAdapter {
      * @return a generated example for the property
      */
     public static Object generateExample(Schema property, MarkupDocBuilder markupDocBuilder) {
+        if (property.get$ref() != null) {
+            if (logger.isDebugEnabled()) { logger.debug("generateExample RefProperty for " + property.getName()); }
+            return markupDocBuilder.copy(false).crossReference(property.get$ref()).toString();
+        }
 
         switch (property.getType()) {
             case "integer":
@@ -92,9 +78,6 @@ public final class PropertyAdapter {
                 return true;
             case "string":
                 return "string";
-            case "ref":
-                if (logger.isDebugEnabled()) { logger.debug("generateExample RefProperty for " + property.getName()); }
-                return markupDocBuilder.copy(false).crossReference(property.get$ref()).toString();
             case "array":
                 return generateArrayExample(Json.mapper().convertValue(property, ArraySchema.class), markupDocBuilder);
             default:
