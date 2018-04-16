@@ -19,16 +19,13 @@ import io.github.swagger2markup.Labels;
 import io.github.swagger2markup.Swagger2MarkupConverter;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.spi.MarkupComponent;
-import io.swagger.models.Swagger;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.servers.Server;
 import org.apache.commons.lang3.Validate;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.copyMarkupDocBuilder;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 
 public class UriSchemeComponent extends MarkupComponent<UriSchemeComponent.Parameters> {
@@ -44,30 +41,17 @@ public class UriSchemeComponent extends MarkupComponent<UriSchemeComponent.Param
 
     @Override
     public MarkupDocBuilder apply(MarkupDocBuilder markupDocBuilder, Parameters params) {
-        // TODO - radcortez
-        /*
         OpenAPI swagger = params.swagger;
-        if (isNotBlank(swagger.getHost()) || isNotBlank(swagger.getBasePath()) || isNotEmpty(swagger.getSchemes())) {
-            markupDocBuilder.sectionTitleLevel(params.titleLevel, labels.getLabel(Labels.URI_SCHEME));
-            MarkupDocBuilder paragraphBuilder = copyMarkupDocBuilder(markupDocBuilder);
-            if (isNotBlank(swagger.getHost())) {
-                paragraphBuilder.italicText(labels.getLabel(Labels.HOST))
-                        .textLine(COLON + swagger.getHost());
-            }
-            if (isNotBlank(swagger.getBasePath())) {
-                paragraphBuilder.italicText(labels.getLabel(Labels.BASE_PATH))
-                        .textLine(COLON + swagger.getBasePath());
-            }
-            if (isNotEmpty(swagger.getSchemes())) {
-                List<String> schemes = swagger.getSchemes().stream()
-                        .map(Enum::toString)
-                        .collect(Collectors.toList());
-                paragraphBuilder.italicText(labels.getLabel(Labels.SCHEMES))
-                        .textLine(COLON + join(schemes, ", "));
-            }
-            markupDocBuilder.paragraph(paragraphBuilder.toString(), true);
+        List<Server> servers = swagger.getServers();
+
+        markupDocBuilder.sectionTitleLevel(params.titleLevel, labels.getLabel(Labels.URI_SCHEME));
+        MarkupDocBuilder paragraphBuilder = copyMarkupDocBuilder(markupDocBuilder);
+        for (Server server : servers) {
+            paragraphBuilder.italicText(labels.getLabel(Labels.SERVER)).textLine(COLON + server.getUrl());
         }
-        */
+
+        markupDocBuilder.paragraph(paragraphBuilder.toString(), true);
+
         return markupDocBuilder;
     }
 

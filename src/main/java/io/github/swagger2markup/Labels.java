@@ -56,6 +56,7 @@ public class Labels {
     public static final String OVERVIEW = "overview";
     public static final String URI_SCHEME = "uri_scheme";
     public static final String HOST = "host";
+    public static final String SERVER = "server";
     public static final String BASE_PATH = "base_path";
     public static final String SCHEMES = "schemes";
 	public static final String EXTERNAL_DOCS = "external_docs";

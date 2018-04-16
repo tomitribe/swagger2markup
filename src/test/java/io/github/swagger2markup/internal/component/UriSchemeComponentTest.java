@@ -19,9 +19,12 @@ import io.github.swagger2markup.Swagger2MarkupConverter;
 import io.github.swagger2markup.assertions.DiffUtils;
 import io.github.swagger2markup.internal.document.OverviewDocument;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
+import io.swagger.models.Info;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
+import io.swagger.parser.util.SwaggerDeserializationResult;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.parser.converter.SwaggerConverter;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,14 +50,19 @@ public class UriSchemeComponentTest extends AbstractComponentTest {
     @Test
     public void testUriSchemeComponent() throws URISyntaxException {
 
-        Swagger swagger = new Swagger().host("http://localhost").basePath("/v2");
+        Swagger swagger = new Swagger().host("localhost").basePath("/v2");
         swagger.addScheme(Scheme.HTTP);
         swagger.addScheme(Scheme.HTTPS);
+        swagger.setInfo(new Info());
+
+        final SwaggerDeserializationResult parse = new SwaggerDeserializationResult();
+        parse.setSwagger(swagger);
+        final OpenAPI openAPI = new SwaggerConverter().convert(parse).getOpenAPI();
 
         Swagger2MarkupConverter.Context context = createContext();
         MarkupDocBuilder markupDocBuilder = context.createMarkupDocBuilder();
 
-        markupDocBuilder = new UriSchemeComponent(context).apply(markupDocBuilder, UriSchemeComponent.parameters(new OpenAPI(), OverviewDocument.SECTION_TITLE_LEVEL));
+        markupDocBuilder = new UriSchemeComponent(context).apply(markupDocBuilder, UriSchemeComponent.parameters(openAPI, OverviewDocument.SECTION_TITLE_LEVEL));
         markupDocBuilder.writeToFileWithoutExtension(outputDirectory, StandardCharsets.UTF_8);
 
         Path expectedFile = getExpectedFile(COMPONENT_NAME);
