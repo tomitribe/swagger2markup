@@ -1,6 +1,9 @@
 buildscript {
     repositories {
         jcenter()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
     }
     dependencies {
         classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.6'
@@ -9,6 +12,7 @@ buildscript {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.0.0"
         classpath "org.ajoberstar:gradle-git-publish:0.3.1"
+        classpath 'net.linguica.gradle:maven-settings-plugin:0.5'
     }
 }
 description = 'swagger2markup Build'
@@ -18,9 +22,11 @@ group = 'io.github.swagger2markup'
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
-apply from: 'gradle/publishing.gradle'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply from: 'gradle/coverage.gradle'
 apply from: 'gradle/documentation.gradle'
+apply plugin: 'net.linguica.maven-settings'
 
 tasks.withType(JavaCompile) {
     sourceCompatibility = "1.8"
@@ -33,6 +39,10 @@ tasks.withType(JavaCompile) {
 repositories {
     maven {
         url "https://oss.jfrog.org/artifactory/oss-snapshot-local"
+    }
+    maven {
+        name "tomitribe-all"
+        url "https://repository.tomitribe.com/content/groups/tomitribe"
     }
     jcenter()
     //mavenLocal()
@@ -65,4 +75,29 @@ test {
 
 task wrapper(type: Wrapper) {
     gradleVersion = '4.3.1'
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier "sources"
+}
+
+publishing {
+    repositories {
+        maven {
+            if (project.version.endsWith("SNAPSHOT")) {
+                name = 'tomitribe.snapshots.https'
+                url = 'https://repository.tomitribe.com/content/repositories/snapshots-tomitribe'
+            } else {
+                name = 'tomitribe.releases.https'
+                url = 'https://repository.tomitribe.com/service/local/staging/deploy/maven2'
+            }
+        }
+    }
+
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
 }
