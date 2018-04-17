@@ -169,7 +169,7 @@ public class ExamplesUtil {
         if (mediaTypeOptional.isPresent()) {
             final Schema schema = mediaTypeOptional.get().getSchema();
             if (schema.get$ref() != null) {
-                String simpleRef = schema.get$ref();
+                String simpleRef = RefUtils.computeSimpleRef(schema.get$ref());
                 example = generateExampleForRefModel(generateMissingExamples, simpleRef, definitions, definitionDocumentResolver, markupDocBuilder, new HashMap<>());
             } else if (generateMissingExamples) {
                 if (schema instanceof ComposedSchema) {
