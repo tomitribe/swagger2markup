@@ -26,9 +26,9 @@ import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.model.PathOperation;
 import io.github.swagger2markup.spi.MarkupComponent;
 import io.github.swagger2markup.spi.PathsDocumentExtension;
-import io.swagger.models.properties.Property;
 import io.swagger.util.Json;
 import io.swagger.v3.oas.models.headers.Header;
+import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
@@ -42,10 +42,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static ch.netzwerg.paleo.ColumnIds.StringColumnId;
-import static io.github.swagger2markup.Labels.*;
+import static io.github.swagger2markup.Labels.DEFAULT_COLUMN;
+import static io.github.swagger2markup.Labels.DESCRIPTION_COLUMN;
+import static io.github.swagger2markup.Labels.HEADERS_COLUMN;
+import static io.github.swagger2markup.Labels.HTTP_CODE_COLUMN;
+import static io.github.swagger2markup.Labels.NO_CONTENT;
+import static io.github.swagger2markup.Labels.RESPONSE;
+import static io.github.swagger2markup.Labels.RESPONSES;
+import static io.github.swagger2markup.Labels.SCHEMA_COLUMN;
 import static io.github.swagger2markup.internal.utils.InlineSchemaUtils.createInlineType;
 import static io.github.swagger2markup.internal.utils.MapUtils.toSortedMap;
-import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.*;
+import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.boldText;
+import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.copyMarkupDocBuilder;
+import static io.github.swagger2markup.internal.utils.MarkupDocBuilderUtils.markupDescription;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class ResponseComponent extends MarkupComponent<ResponseComponent.Parameters> {
@@ -86,11 +95,12 @@ public class ResponseComponent extends MarkupComponent<ResponseComponent.Paramet
             Map<String, ApiResponse> sortedResponses = toSortedMap(responses, config.getResponseOrdering());
             sortedResponses.forEach((String responseName, ApiResponse response) -> {
                 String schemaContent = labels.getLabel(NO_CONTENT);
-                // TODO - radcortez
-                /*
-                if (response.getSchema() != null) {
-                    Property property = response.getSchema();
-                    Type type = new PropertyAdapter(property).getType(definitionDocumentResolver);
+
+                final Optional<MediaType> responseSchema =
+                        Optional.ofNullable(response.getContent())
+                                .flatMap(content -> content.values().stream().findFirst());
+                if (responseSchema.isPresent()) {
+                    Type type = new PropertyAdapter(responseSchema.get().getSchema()).getType(definitionDocumentResolver);
 
                     if (config.isInlineSchemaEnabled()) {
                         type = createInlineType(type, labels.getLabel(RESPONSE) + " " + responseName, operation.getId() + " " + labels.getLabel(RESPONSE) + " " + responseName, params.inlineDefinitions);
@@ -98,7 +108,6 @@ public class ResponseComponent extends MarkupComponent<ResponseComponent.Paramet
 
                     schemaContent = type.displaySchema(markupDocBuilder);
                 }
-                */
 
                 MarkupDocBuilder descriptionBuilder = copyMarkupDocBuilder(markupDocBuilder);
 
