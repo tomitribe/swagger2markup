@@ -28,6 +28,7 @@ import io.swagger.models.Swagger;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.parameters.RequestBody;
 import org.junit.Test;
 
 import java.net.URISyntaxException;
@@ -70,19 +71,16 @@ public class ParameterAdapterTest {
         assertThat(((BasicType) type).getType()).isEqualTo("string");
 
         //Test Body Parameter
-        Parameter bodyParameter = parameters.get(2);
-        ParameterAdapter bodyParameterAdapter = new ParameterAdapter(
+        RequestBody bodyParameter = operation.getOperation().getRequestBody();
+        RequestBodyAdapter bodyParameterAdapter = new RequestBodyAdapter(
                 context,
                 operation,
                 bodyParameter,
                 resolverFromOperation);
-        type = bodyParameterAdapter.getType();
+        type = bodyParameterAdapter.getType(resolverFromOperation);
 
-        assertThat(bodyParameterAdapter.getIn()).isEqualTo("Body");
-        assertThat(type).isInstanceOf(RefType.class);
-        Type refType = ((RefType) type).getRefType();
-        assertThat(refType).isInstanceOf(ObjectType.class);
-        ObjectType objectType = (ObjectType) refType;
+        assertThat(type).isInstanceOf(ObjectType.class);
+        ObjectType objectType = (ObjectType) type;
         assertThat(objectType.getProperties()).hasSize(3);
 
         //Inline Schema

@@ -179,14 +179,14 @@ public class ParameterAdapter {
             List<String> enums = serializableParameter.getEnum();
 
             if (CollectionUtils.isNotEmpty(enums)) {
-                type = new EnumType(serializableParameter.getName(), enums);
+                type = new EnumType(parameter.getName(), enums);
             } else {
-                type = new BasicType(serializableParameter.getType(), serializableParameter.getName(), serializableParameter.getFormat());
+                type = new BasicType(serializableParameter.getType(), parameter.getName(), serializableParameter.getFormat());
             }
             if (serializableParameter.getType().equals("array")) {
                 String collectionFormat = serializableParameter.getFormat();
 
-                type = new ArrayType(serializableParameter.getName(), new PropertyAdapter(serializableParameter).getType(definitionDocumentResolver), collectionFormat);
+                type = new ArrayType(parameter.getName(), new PropertyAdapter(serializableParameter).getType(definitionDocumentResolver), collectionFormat);
             }
         }
 
