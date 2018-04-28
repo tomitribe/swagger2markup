@@ -26,9 +26,9 @@ import io.vavr.Function1;
  */
 public abstract class DocumentResolver implements Function1<String, String> {
 
-    Swagger2MarkupConverter.Context context;
-    MarkupDocBuilder markupDocBuilder;
-    Swagger2MarkupConfig config;
+    public Swagger2MarkupConverter.Context context;
+    public MarkupDocBuilder markupDocBuilder;
+    public Swagger2MarkupConfig config;
 
     public DocumentResolver(Swagger2MarkupConverter.Context context) {
         this.context = context;

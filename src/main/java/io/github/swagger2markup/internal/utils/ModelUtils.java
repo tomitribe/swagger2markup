@@ -20,6 +20,7 @@ import io.github.swagger2markup.internal.adapter.PropertyAdapter;
 import io.github.swagger2markup.internal.resolver.DocumentResolver;
 import io.github.swagger2markup.internal.type.ArrayType;
 import io.github.swagger2markup.internal.type.BasicType;
+import io.github.swagger2markup.internal.type.ComposedType;
 import io.github.swagger2markup.internal.type.EnumType;
 import io.github.swagger2markup.internal.type.MapType;
 import io.github.swagger2markup.internal.type.ObjectType;
@@ -34,7 +35,10 @@ import io.swagger.v3.oas.models.media.Discriminator;
 import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.lang3.Validate;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -73,6 +77,8 @@ public final class ModelUtils {
             ObjectTypePolymorphism polymorphism = new ObjectTypePolymorphism(ObjectTypePolymorphism.Nature.NONE, null);
             String name = model.getTitle();
 
+            // TODO - radcortez - Causes StackOverflow with the next if condition.
+            /*
             if (composedModel.getAllOf() != null) {
                 polymorphism.setNature(ObjectTypePolymorphism.Nature.COMPOSITION);
 
@@ -94,15 +100,28 @@ public final class ModelUtils {
                     }
                 }
             }
+            */
 
-            return new ObjectType(name, polymorphism, allProperties);
+            List<Type> anyOf = new ArrayList<>();
+            Map<String, Schema> anyOfSchema = new HashMap<>();
+            if (composedModel.getAnyOf() != null) {
+                polymorphism.setNature(ObjectTypePolymorphism.Nature.INHERITANCE);
+
+                for (Schema innerModel : composedModel.getAnyOf()) {
+                    Type innerModelType = getType(innerModel, definitions, definitionDocumentResolver);
+                    anyOf.add(innerModelType);
+                    anyOfSchema.put(innerModelType.getName(), innerModel);
+                }
+            }
+
+            return new ComposedType(name, null, anyOf, null, null, anyOfSchema, null);
         } else if (model.get$ref() != null) {
-            String refName = model.get$ref();
+            String refName = RefUtils.computeSimpleRef(model.get$ref());
 
             Type refType = new ObjectType(refName, null);
             if (definitions.containsKey(refName)) {
                 refType = getType(definitions.get(refName), definitions, definitionDocumentResolver);
-                refType.setName(refName);
+                refType.setName(Optional.ofNullable(refType.getName()).orElse(refName));
                 refType.setUniqueName(refName);
             }
 

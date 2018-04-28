@@ -16,21 +16,13 @@
 package io.github.swagger2markup.internal.adapter;
 
 import io.github.swagger2markup.internal.resolver.DocumentResolver;
-import io.github.swagger2markup.internal.type.ArrayType;
-import io.github.swagger2markup.internal.type.BasicType;
-import io.github.swagger2markup.internal.type.EnumType;
-import io.github.swagger2markup.internal.type.MapType;
-import io.github.swagger2markup.internal.type.ObjectType;
-import io.github.swagger2markup.internal.type.RefType;
 import io.github.swagger2markup.internal.type.Type;
+import io.github.swagger2markup.internal.utils.ModelUtils;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.MapSchema;
-import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
-import io.swagger.v3.oas.models.media.StringSchema;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -42,9 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static io.github.swagger2markup.internal.utils.RefUtils.computeSimpleRef;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public final class PropertyAdapter {
 
@@ -137,44 +126,9 @@ public final class PropertyAdapter {
      * @return the type of the property
      */
     public Type getType(DocumentResolver definitionDocumentResolver) {
-        Type type;
-        if (property.get$ref() != null) {
-            String ref = computeSimpleRef(property.get$ref());
-            type = new RefType(definitionDocumentResolver.apply(ref), new ObjectType(ref, null  /*FIXME, not used for now */));
-        } else if (property instanceof ArraySchema) {
-            ArraySchema arrayProperty = (ArraySchema) property;
-            Schema items = arrayProperty.getItems();
-            if (items == null)
-                type = new ArrayType(arrayProperty.getTitle(), new ObjectType(null, null)); // FIXME : Workaround for Swagger parser issue with composed models (https://github.com/Swagger2Markup/swagger2markup/issues/150)
-            else
-                type = new ArrayType(arrayProperty.getTitle(), new PropertyAdapter(items).getType(definitionDocumentResolver));
-        } else if (property instanceof MapSchema) {
-            MapSchema mapProperty = (MapSchema) property;
-            Schema additionalProperties = (Schema) mapProperty.getAdditionalProperties();
-            if (additionalProperties == null)
-                type = new MapType(mapProperty.getTitle(), new ObjectType(null, null)); // FIXME : Workaround for Swagger parser issue with composed models (https://github.com/Swagger2Markup/swagger2markup/issues/150)
-            else
-                type = new MapType(mapProperty.getTitle(), new PropertyAdapter(additionalProperties).getType(definitionDocumentResolver));
-        } else if (property instanceof StringSchema) {
-            StringSchema stringProperty = (StringSchema) property;
-            List<String> enums = stringProperty.getEnum();
-            if (CollectionUtils.isNotEmpty(enums)) {
-                type = new EnumType(stringProperty.getTitle(), enums);
-            } else if (isNotBlank(stringProperty.getFormat())) {
-                type = new BasicType(stringProperty.getType(), stringProperty.getTitle(), stringProperty.getFormat());
-            } else {
-                type = new BasicType(stringProperty.getType(), stringProperty.getTitle());
-            }
-        } else if (property instanceof ObjectSchema) {
-            type = new ObjectType(property.getTitle(), ((ObjectSchema) property).getProperties());
-        } else {
-            if (isNotBlank(property.getFormat())) {
-                type = new BasicType(property.getType(), property.getTitle(), property.getFormat());
-            } else {
-                type = new BasicType(property.getType(), property.getTitle());
-            }
-        }
-        return type;
+        return ModelUtils.getType(property,
+                                  definitionDocumentResolver.context.getSwagger().getComponents().getSchemas(),
+                                  definitionDocumentResolver);
     }
 
     /**

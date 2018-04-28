@@ -38,7 +38,21 @@ public class RefType extends Type {
 
     @Override
     public String displaySchema(MarkupDocBuilder docBuilder) {
-        return docBuilder.copy(false).crossReference(getDocument(), refType.getUniqueName(), refType.getName()).toString();
+        if (refType instanceof ComposedType) {
+            return refType.displaySchema(docBuilder);
+        }
+
+        return docBuilder.copy(false).crossReference(getDocument(), refType.getUniqueName(), refType.getUniqueName()).toString();
+    }
+
+    @Override
+    public String getName() {
+        return refType.getName();
+    }
+
+    @Override
+    public String getUniqueName() {
+        return refType.getUniqueName();
     }
 
     public String getDocument() {

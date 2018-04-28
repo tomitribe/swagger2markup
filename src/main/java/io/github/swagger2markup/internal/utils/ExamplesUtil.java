@@ -18,6 +18,7 @@ package io.github.swagger2markup.internal.utils;
 
 import io.github.swagger2markup.internal.adapter.PropertyAdapter;
 import io.github.swagger2markup.internal.resolver.DocumentResolver;
+import io.github.swagger2markup.internal.type.ComposedType;
 import io.github.swagger2markup.internal.type.ObjectType;
 import io.github.swagger2markup.markup.builder.MarkupDocBuilder;
 import io.github.swagger2markup.model.PathOperation;
@@ -215,8 +216,13 @@ public class ExamplesUtil {
                 }
                 if (refStack.get(simpleRef) <= MAX_RECURSION_TO_DISPLAY) {
                     if (model instanceof ComposedSchema) {
-                        //FIXME: getProperties() may throw NullPointerException
-                        example = exampleMapForProperties(((ObjectType) ModelUtils.getType(model, definitions, definitionDocumentResolver)).getProperties(), definitions, definitionDocumentResolver, markupDocBuilder, new HashMap<>());
+                        ComposedType composedType =
+                                (ComposedType) ModelUtils.getType(model, definitions, definitionDocumentResolver);
+                        if (composedType.getAnyOfSchemas() != null && !composedType.getAnyOfSchemas().isEmpty()) {
+                            example = exampleMapForProperties(composedType.getAnyOfSchemas(), definitions,
+                                                              definitionDocumentResolver, markupDocBuilder, refStack);
+                        }
+
                     } else {
                         example = exampleMapForProperties(model.getProperties(), definitions, definitionDocumentResolver, markupDocBuilder, refStack);
                     }

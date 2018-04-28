@@ -66,4 +66,21 @@ public class DefinitionComponentTest extends AbstractComponentTest {
         DiffUtils.assertThatFileIsEqual(expectedFile, outputDirectory, getReportName(COMPONENT_NAME));
 
     }
+
+    @Test
+    public void testDefinitionComponentAnyOf() throws Exception {
+        Path file = Paths.get(ParameterTableComponentTest.class.getResource("/yaml/openApi.yaml").toURI());
+        Swagger2MarkupConverter converter = Swagger2MarkupConverter.from(file).build();
+        OpenAPI swagger = converter.getContext().getSwagger();
+
+        Schema apiConnection = swagger.getComponents().getSchemas().get("CreateApiConnection");
+
+        Swagger2MarkupConverter.Context context = converter.getContext();
+        MarkupDocBuilder markupDocBuilder = context.createMarkupDocBuilder();
+
+        markupDocBuilder = new DefinitionComponent(context, new DefinitionDocumentResolverFromDefinition(context))
+                .apply(markupDocBuilder, DefinitionComponent.parameters("CreateApiConnection", apiConnection, 2));
+
+        System.out.println(markupDocBuilder.toString());
+    }
 }
