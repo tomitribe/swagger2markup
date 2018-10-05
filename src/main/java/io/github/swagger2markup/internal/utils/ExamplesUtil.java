@@ -68,7 +68,11 @@ public class ExamplesUtil {
                                               .stream()
                                               .findFirst()
                                               .map(MediaType::getSchema)
-                                              .orElseThrow(IllegalArgumentException::new);
+                                              .orElse(null);
+
+                if (schema == null) {
+                    return new HashMap();
+                }
 
                 Object example = schema.getExample();
                 if (example == null) {
