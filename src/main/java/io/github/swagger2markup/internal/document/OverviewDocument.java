@@ -73,14 +73,23 @@ public class OverviewDocument extends MarkupComponent<OverviewDocument.Parameter
     public MarkupDocBuilder apply(MarkupDocBuilder markupDocBuilder, OverviewDocument.Parameters params) {
         OpenAPI swagger = params.swagger;
         Info info = swagger.getInfo();
-        buildDocumentTitle(markupDocBuilder, info.getTitle());
+        boolean hasInfo = info != null;
+
+        if(hasInfo){
+            buildDocumentTitle(markupDocBuilder, info.getTitle());
+        }
+
         applyOverviewDocumentExtension(new Context(Position.DOCUMENT_BEFORE, markupDocBuilder));
         buildOverviewTitle(markupDocBuilder, labels.getLabel(Labels.OVERVIEW));
         applyOverviewDocumentExtension(new Context(Position.DOCUMENT_BEGIN, markupDocBuilder));
-        buildDescriptionParagraph(markupDocBuilder, info.getDescription());
-        buildVersionInfoSection(markupDocBuilder, info);
-        buildContactInfoSection(markupDocBuilder, info.getContact());
-        buildLicenseInfoSection(markupDocBuilder, info);
+
+        if(hasInfo){
+            buildDescriptionParagraph(markupDocBuilder, info.getDescription());
+            buildVersionInfoSection(markupDocBuilder, info);
+            buildContactInfoSection(markupDocBuilder, info.getContact());
+            buildLicenseInfoSection(markupDocBuilder, info);
+        }
+
         buildUriSchemeSection(markupDocBuilder, swagger);
         buildTagsSection(markupDocBuilder, swagger.getTags());
         // TODO - radcortez
